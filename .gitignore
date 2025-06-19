@@ -13,6 +13,9 @@ build/
 #  Dashboard
 dashboard/node_modules/
 dashboard/dist/
+dashboard/.next/
+
+ARCHITECTURE-GUIDE.html
 
 #  Delivery Worker
 delivery-worker/node_modules/
