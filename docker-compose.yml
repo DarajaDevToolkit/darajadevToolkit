@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  # Redis for queue management
+  redis:
+    image: redis:7-alpine
+    container_name: daraja-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  # PostgreSQL for data persistence
+  postgres:
+    image: postgres:15-alpine
+    container_name: daraja-postgres
+    environment:
+      POSTGRES_DB: daraja_dev
+      POSTGRES_USER: daraja_user
+      POSTGRES_PASSWORD: daraja_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # pgAdmin for database management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: daraja-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@daraja.dev
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    profiles:
+      - tools
+
+volumes:
+  redis_data:
+  postgres_data:
+
+networks:
+  default:
+    name: daraja-network

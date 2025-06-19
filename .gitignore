@@ -1,0 +1,24 @@
+
+
+notes.md
+
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+dist/
+coverage/
+build/
+
+#  Dashboard
+dashboard/node_modules/
+dashboard/dist/
+
+#  Delivery Worker
+delivery-worker/node_modules/
+
+# shared
+shared/node_modules/
+
+# webhook-service
+webhook-service/node_modules/

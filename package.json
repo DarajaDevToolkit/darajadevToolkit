@@ -1,0 +1,24 @@
+{
+  "name": "daraja-developer-toolkit",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "webhook-service",
+    "delivery-worker",
+    "dashboard",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w webhook-service\" \"npm run dev -w dashboard\" \"npm run dev -w delivery-worker\"",
+    "build": "npm run build -w shared && npm run build -w webhook-service && npm run build -w delivery-worker && npm run build -w dashboard",
+    "build:shared": "npm run build -w shared",
+    "lint": "npm run lint -w dashboard",
+    "clean": "rm -rf */node_modules */dist */.next"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
