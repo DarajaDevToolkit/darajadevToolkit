@@ -8,3 +8,5 @@ dist/
 coverage/
 build/
 dashboard/.next
+
+tsconfig.tsbuildinfo
