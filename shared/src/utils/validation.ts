@@ -49,7 +49,8 @@ export function detectWebhookType(payload: any): WebhookEventType | null {
 export const MPESA_IP_RANGES = [
   "196.201.214.0/24",
   "196.201.215.0/24",
-  // Add more ranges as discovered
+  "196.201.216.0/24",
+  "196.201.217.0/24",
 ];
 
 export function isValidMpesaIP(
@@ -65,3 +66,18 @@ export function isValidMpesaIP(
   // For now, just check if it's not localhost
   return !ip.includes("127.0.0.1") && !ip.includes("::1");
 }
+
+// Here is an Idea of how to implement the above
+// function validateMpesaIP(req) {
+//   const clientIP = req.ip
+
+//   // In production, validate IP
+//   if (process.env.MPESA_ENV === 'production') {
+//     return MPESA_PRODUCTION_IPS.some(range =>
+//       ipInRange(clientIP, range)
+//     )
+//   }
+
+//   // In sandbox, allow any IP
+//   return true
+// }

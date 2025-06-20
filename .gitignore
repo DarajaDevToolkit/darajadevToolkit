@@ -9,11 +9,12 @@ pnpm-lock.yaml
 dist/
 coverage/
 build/
+dashboard/.next/
 
 #  Dashboard
 dashboard/node_modules/
 dashboard/dist/
-dashboard/.next/
+dashboard/.next
 
 ARCHITECTURE-GUIDE.html
 
@@ -25,3 +26,5 @@ shared/node_modules/
 
 # webhook-service
 webhook-service/node_modules/
+
+devflow.md
