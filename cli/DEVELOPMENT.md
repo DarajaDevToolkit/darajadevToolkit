@@ -2,8 +2,6 @@
 
 ## 🐍 Python CLI for Daraja Developer Toolkit
 
-The CLI is built with Python using modern tools and best practices. Here's everything your CLI team needs to know.
-
 ## 📁 Structure Overview
 
 ```
@@ -265,5 +263,3 @@ pyinstaller --onefile src/daraja_cli/main.py
 - **Configuration**: User settings, environment management
 - **Dashboard**: Consistent data display
 - **Documentation**: User guides, troubleshooting
-
-Your CLI team has a solid foundation to build on! The structure is modern, scalable, and follows Python best practices. 🎉
