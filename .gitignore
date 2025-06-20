@@ -1,30 +1,153 @@
 
-
-notes.md
-
+# Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# Build outputs
 dist/
-coverage/
 build/
-dashboard/.next/
+out/
+coverage/
+.next/
+.nuxt/
+*.tsbuildinfo
 
-#  Dashboard
-dashboard/node_modules/
-dashboard/dist/
-dashboard/.next
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.iml
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Optional caches
+.npm
+.eslintcache
+.stylelintcache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Bun
+.bun
+bun.lockb
+
+# Temporary files
+*.tmp
+*.temp
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.csr
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Deployment
+.vercel
+.aws/
+*.tar.gz
+*.zip
+
+# Project specific
+notes.md
+devflow.md
 ARCHITECTURE-GUIDE.html
 
-#  Delivery Worker
+# Package-specific ignores (keep these for explicit clarity)
+dashboard/.next/
+dashboard/node_modules/
+dashboard/dist/
 delivery-worker/node_modules/
-
-# shared
 shared/node_modules/
-
-# webhook-service
 webhook-service/node_modules/
-
-devflow.md
+cli/venv/
+cli/dist/
+cli/build/
