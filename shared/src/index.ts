@@ -1,3 +1,3 @@
-export * from "./types/webhook.js";
-export * from "./types/user.js";
-export * from "./utils/validation.js";
+export * from "./types/webhook";
+export * from "./types/user";
+export * from "./utils/validation";

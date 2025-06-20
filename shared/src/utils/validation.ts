@@ -3,7 +3,7 @@ import {
   MpesaSTKCallback,
   MpesaC2BCallback,
   WebhookEventType,
-} from "../types/webhook.js";
+} from "../types/webhook";
 
 export function validateMpesaSTKPayload(
   payload: any
