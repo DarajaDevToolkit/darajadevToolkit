@@ -9,14 +9,13 @@ A reliable webhook proxy service that sits between M-Pesa and your application, 
 Every Kenyan developer integrating M-Pesa has experienced:
 
 - **Lost webhooks** when dev servers go down
-- **Environment switching nightmares** (different URLs for dev/staging/prod)
 - **Zero visibility** into webhook delivery status
 - **Manual testing** in production environments
 - **No retry mechanism** when webhooks fail
 
 ## 🚀 Our Solution
 
-**One permanent URL + Intelligent routing + Bulletproof reliability**
+**One permanent URL + Intelligent routing + Reliability**
 
 ```
 M-Pesa → [Your Permanent URL] → [Smart Validation] → [Queue] → [Environment Router] → [Your App]
@@ -61,8 +60,8 @@ M-Pesa → [Your Permanent URL] → [Smart Validation] → [Queue] → [Environm
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/daraja-developer-toolkit.git
-cd daraja-developer-toolkit
+git clone https://github.com/DarajaDevToolkit/darajadevToolkit.git
+cd darajadevToolkit
 
 # Install dependencies
 npm install
@@ -208,9 +207,9 @@ We're a focused team of ~10 Kenyan developers building this in the open.
 3. Fork, develop, test, PR
 4. We review & merge quickly
 
-## 📄 License
+<!-- ## 📄 License
 
-MIT License - See [LICENSE](LICENSE) file
+MIT License - See [LICENSE](LICENSE) file -->
 
 ## 🙏 Acknowledgments
 
@@ -219,5 +218,3 @@ Built by developers who have felt the M-Pesa integration pain. Special thanks to
 ---
 
 **Made with ❤️ in Kenya 🇰🇪**
-
-_Transforming M-Pesa development, one webhook at a time._
