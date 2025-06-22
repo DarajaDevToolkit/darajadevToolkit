@@ -61,5 +61,6 @@ export async function corsMiddleware(c: Context, next: Next) {
 export async function rateLimiter(c: Context, next: Next) {
   // TODO: Implement proper rate limiting
   // For now, just pass through
+  //Use redis
   await next();
 }

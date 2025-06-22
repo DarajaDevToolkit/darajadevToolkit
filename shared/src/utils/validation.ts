@@ -53,6 +53,8 @@ export const MPESA_IP_RANGES = [
   "196.201.217.0/24",
 ];
 
+// npm ip range check - its a package to check if an IP is in a range, but you can implement your own logic
+
 export function isValidMpesaIP(
   ip: string,
   strictMode: boolean = false

@@ -2,6 +2,7 @@ import type { Context } from "hono";
 import type { MpesaResponse, WebhookPayload } from "@daraja-toolkit/shared";
 import { WebhookValidationService } from "../services/WebhookValidationService";
 import { WebhookQueueService } from "../services/WebhookQueueService";
+import type { WebhookEventType } from "@daraja-toolkit/shared";
 
 export class WebhookController {
   private validationService: WebhookValidationService;
@@ -49,7 +50,7 @@ export class WebhookController {
       // Step 2: Create internal webhook payload
       const webhookPayload: Partial<WebhookPayload> = {
         userId,
-        eventType: validationResult.webhookType,
+        eventType: validationResult.webhookType as WebhookEventType,
         payload,
         receivedAt: new Date(),
         environment: "dev", // TODO: Get from user settings
