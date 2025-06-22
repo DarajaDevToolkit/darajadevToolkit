@@ -130,7 +130,7 @@ function StatusPage() {
 
 ```bash
 # Quick webhook testing
-daraja test webhook --environment dev
+daraja config set test webhook --environment dev
 
 # Real-time monitoring
 daraja logs --tail
@@ -245,8 +245,8 @@ daraja env switch production
 
 ```bash
 # Clone the repository
-git clone https://github.com/daraja-toolkit/daraja-developer-toolkit.git
-cd daraja-developer-toolkit
+git clone https://github.com/DarajaDevToolkit/darajadevToolkit.git
+cd darajadevToolkit
 
 # Install dependencies (this handles all services)
 npm install

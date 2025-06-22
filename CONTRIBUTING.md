@@ -14,18 +14,37 @@ Thanks for your interest in contributing! This guide will help you get started.
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/your-org/daraja-developer-toolkit.git
-cd daraja-developer-toolkit
+git clone https://github.com/DarajaDevToolkit/darajadevToolkit.git
+cd darajadevToolkit
 npm install
 
 # 2. Start local services (Redis & PostgreSQL)
-docker-compose up -d
+docker compose up -d
 
 # 3. Copy environment variables
 cp .env.example .env
 
 # 4. Start development servers
 npm run dev
+```
+
+### Optional Dev setup scripts
+
+```bash
+# Run dev.sh script to set up your development environment
+./dev.sh setup
+
+# Make sure to have the necessary permissions to execute the script
+chmod +x dev.sh
+
+# Available commands:
+  setup   - Install all dependencies and set up the project
+  start   - Start all development services
+  stop    - Stop all development services
+  status  - Check status of all services
+  test    - Test that everything is working
+  clean   - Clean all build artifacts and dependencies
+
 ```
 
 ## 🏗️ Architecture Overview
@@ -197,6 +216,5 @@ service-name/
 
 - Ask in Discord #general channel
 - Create GitHub Discussion
-- Tag @project-lead in issues
 
 Let's build something amazing together! 🇰🇪

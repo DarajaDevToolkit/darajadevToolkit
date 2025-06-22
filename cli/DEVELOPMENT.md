@@ -109,6 +109,8 @@ result = api.get_user_info()
 
 ## 📋 Priority Tasks for CLI Team
 
+- To make goals clear and manageable, use this as guide to prioritize tasks for the CLI development.
+
 ### Week 1-2: Core Foundation
 
 - [ ] **Fix import issues** (path resolution)
@@ -147,6 +149,8 @@ result = api.get_user_info()
 - **Progress feedback** for long operations
 
 ### Example Command Outputs
+
+- You can also adopt other design patterns so long as the information is clear and actionable.
 
 ```bash
 $ daraja status
