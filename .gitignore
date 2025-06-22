@@ -141,6 +141,7 @@ bun.lock
 notes.md
 devflow.md
 ARCHITECTURE-GUIDE.html
+tickets.md
 
 # Package-specific ignores (keep these for explicit clarity)
 dashboard/.next/
