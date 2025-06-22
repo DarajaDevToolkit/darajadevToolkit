@@ -114,6 +114,7 @@ pids/
 # Bun
 .bun
 bun.lockb
+bun.lock
 
 # Temporary files
 *.tmp
