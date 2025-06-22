@@ -6,14 +6,24 @@
   "scripts": {
     "dev": "bun run --watch src/server.ts",
     "build": "bun build src/server.ts --outdir ./dist",
-    "start": "bun run src/server.ts"
+    "start": "bun run src/server.ts",
+    "generate": "drizzle-kit generate",
+    "migrate": " tsx src/drizzle/migrate.ts",
+    "studio": "drizzle-kit studio",
+    "push": " drizzle-kit generate && tsx src/drizzle/migrate.ts",
+    "seed": "tsx src/drizzle/seed.ts"
   },
   "dependencies": {
-    "hono": "^4.6.0"
+    "dotenv": "^16.5.0",
+    "drizzle-kit": "^0.31.1",
+    "drizzle-orm": "^0.44.2",
+    "hono": "^4.6.0",
+    "pg": "^8.16.2"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/node": "^22"
+    "@types/node": "^22",
+    "@types/pg": "^8.15.4"
   },
   "peerDependencies": {
     "typescript": "^5"
