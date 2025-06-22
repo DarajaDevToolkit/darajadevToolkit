@@ -92,10 +92,13 @@ start_dev() {
     print_step "Starting development services..."
     
     # Start Docker services (Redis, PostgreSQL)
-    if command -v docker-compose &> /dev/null || command -v docker &> /dev/null; then
+    if command -v docker &> /dev/null; then
         print_step "Starting Docker services..."
-        docker-compose up -d
-        print_success "Docker services started"
+        if docker compose up -d 2>/dev/null; then
+            print_success "Docker services started"
+        else
+            print_warning "Could not start Docker services - check if Docker is running"
+        fi
     else
         print_warning "Docker not available - services will run without persistence"
     fi
@@ -114,7 +117,7 @@ start_dev() {
     echo "Press Ctrl+C to stop all services"
     
     # Wait for interrupt
-    trap "kill $DEV_PID 2>/dev/null; docker-compose down 2>/dev/null; exit" INT
+    trap "kill $DEV_PID 2>/dev/null; docker compose down 2>/dev/null; exit" INT
     wait $DEV_PID
 }
 
@@ -128,7 +131,9 @@ stop_dev() {
     pkill -f "bun.*server" 2>/dev/null || true
     
     # Stop Docker services
-    docker-compose down 2>/dev/null || true
+    if command -v docker &> /dev/null; then
+        docker compose down 2>/dev/null || true
+    fi
     
     print_success "Development services stopped"
 }
@@ -151,7 +156,7 @@ show_status() {
     fi
     
     # Check Docker services
-    if docker-compose ps | grep -q "Up"; then
+    if command -v docker &> /dev/null && docker compose ps 2>/dev/null | grep -q "Up"; then
         print_success "Docker services running"
     else
         echo "  🐳 Docker Services: Not running"
@@ -221,7 +226,7 @@ case "${1:-}" in
         rm -rf */.next
         rm -rf */dist
         rm -rf cli/venv
-        docker-compose down -v 2>/dev/null || true
+        docker compose down -v 2>/dev/null || true
         print_success "Cleanup complete"
         ;;
     *)
