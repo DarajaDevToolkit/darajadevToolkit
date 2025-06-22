@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # Redis for queue management
   redis:
@@ -23,7 +21,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   # pgAdmin for database management (optional)
   pgadmin:
