@@ -4,6 +4,31 @@ This project uses [Drizzle ORM](https://orm.drizzle.team/) with PostgreSQL for t
 
 ---
 
+## Folder Structure
+
+The following is the relevant folder structure for Drizzle ORM setup in this project:
+
+```text
+webhook-service/
+  ├── drizzle.config.ts
+  ├── package.json
+  ├── src/
+  │   └── drizzle/
+  │        ├── db.ts
+  │        ├── migrate.ts
+  │        ├── schema.ts
+  │        ├── seed.ts
+  │        └── migrations/
+  │             ├── 0000_classy_queen_noir.sql
+  │             └── meta/
+  │                  └── 0000_snapshot.json
+  └── drizzle.config.ts
+  └── README.md
+
+```
+
+---
+
 ## 1. Install Dependencies
 
 Make sure you have the following dependencies in your `package.json`:
@@ -21,6 +46,10 @@ Install them with:
 
 ```bash
 bun install
+```
+_or_
+```bash
+npm install
 ```
 
 ---
@@ -71,10 +100,11 @@ Update the `package.json` file to include the following scripts:
 
 ```json
 "scripts": {
-  "generate": "drizzle-kit generate",
+  "gen": "drizzle-kit generate",
   "migrate": "tsx src/drizzle/migrate.ts",
   "studio": "drizzle-kit studio",
-  "push": "drizzle-kit generate && tsx src/drizzle/migrate.ts"
+  "push": "drizzle-kit generate && tsx src/drizzle/migrate.ts",
+  "seed": "tsx src/drizzle/seed.ts"
 }
 ```
 
@@ -88,7 +118,7 @@ Update the `package.json` file to include the following scripts:
   ```bash
   bun run migrate
   ```
-
+ 
 
 The migration script (`src/drizzle/migrate.ts`) uses Drizzle's migrator:
 
