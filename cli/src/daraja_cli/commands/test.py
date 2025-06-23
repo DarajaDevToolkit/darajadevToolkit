@@ -1,5 +1,7 @@
 """
 Testing commands for Daraja CLI
+For now leave these out until we implement backend fully
+But this should be a good starting point for testing webhooks and endpoints
 """
 
 import click
@@ -10,6 +12,8 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from ..utils.config import load_config, ConfigError
 from ..utils.api import DarajaAPI, APIError
+
+from typing import Optional
 
 console = Console()
 
@@ -23,7 +27,7 @@ def test() -> None:
 @click.option('--payload', help='Custom JSON payload file')
 @click.pass_context
 def webhook(ctx: click.Context, environment: str = None, payload: str = None) -> None:
-    """Send a test webhook to your endpoint."""
+    """Send a test webhook to our endpoint."""
     config_data = ctx.obj.get('config')
     api = ctx.obj.get('api')
     

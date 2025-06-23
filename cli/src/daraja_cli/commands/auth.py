@@ -1,5 +1,6 @@
 """
 Authentication commands for Daraja CLI
+Feel free to add more but these are the basic ones needed for user login/logout and checking current user info.
 """
 
 import click
@@ -9,6 +10,7 @@ from rich.panel import Panel
 
 from ..utils.config import save_config, ConfigError
 from ..utils.api import DarajaAPI, APIError
+from typing import Optional # this is so because we can use None as a default value for email and api_key, otherwise you'll run into issues with CI
 
 console = Console()
 
@@ -20,7 +22,8 @@ def auth() -> None:
 @auth.command()
 @click.option('--email', help='Your email address')
 @click.option('--api-key', help='Your API key (if you have one)')
-def login(email: str = None, api_key: str = None) -> None:
+
+def login(email: Optional[str] = None, api_key: Optional[str] = None) -> None:
     """Login to your Daraja account."""
     console.print("[bold blue]🔐 Login to Daraja[/bold blue]")
     

@@ -44,7 +44,7 @@ def list_environments(ctx: click.Context) -> None:
     table.add_column("Current", justify="center")
     
     for env_name, url in endpoints.items():
-        # Status check (simplified for now)
+        # Status check (simplified for now), so do implement actual health check
         status_icon = "🟢"  # TODO: Implement actual health check
         current_icon = "✅" if env_name == current_env else "⚪"
         
