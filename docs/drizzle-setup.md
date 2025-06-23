@@ -47,10 +47,6 @@ Install them with:
 ```bash
 bun install
 ```
-_or_
-```bash
-npm install
-```
 
 ---
 
