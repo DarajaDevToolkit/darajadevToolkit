@@ -3,6 +3,8 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { webhookRoutes } from "./routes/webhookRoutes";
 import { errorHandler, requestLogger } from "./middleware";
+import db from "./drizzle/db";
+import { sql } from "drizzle-orm";
 
 const app = new Hono();
 
@@ -14,6 +16,16 @@ app.use("*", logger());
 
 // Routes
 app.route("/", webhookRoutes);
+
+// Test database connection at startup
+(async () => {
+  try {
+    const result = await db.execute(sql`SELECT NOW()`);
+    console.log('✅ Database connection successful:', result);
+  } catch (error) {
+    console.error('❌ Database connection failed:', error);
+  }
+})();
 
 // Start the server
 const port = process.env.PORT || 3001;
