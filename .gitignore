@@ -142,6 +142,11 @@ notes.md
 devflow.md
 ARCHITECTURE-GUIDE.html
 tickets.md
+cleanup-issues.sh
+create_issues.py
+create-github-issues.sh
+create-issues-simple.sh
+create-labels-milestones.sh
 
 # Package-specific ignores (keep these for explicit clarity)
 dashboard/.next/
