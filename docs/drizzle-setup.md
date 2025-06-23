@@ -163,7 +163,7 @@ await db.insert(deliveryAttempts).values([...]);
 
 Run with:
 ```bash
-bunx tsx src/drizzle/seed.ts
+bun run seed
 ```
 
 ---
