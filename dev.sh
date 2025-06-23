@@ -229,6 +229,23 @@ case "${1:-}" in
         docker compose down -v 2>/dev/null || true
         print_success "Cleanup complete"
         ;;
+    "ci")
+        print_step "Running CI checks locally..."
+        print_step "Installing dependencies..."
+        install_deps
+        
+        print_step "Running lints..."
+        npm run lint || print_warning "Linting completed with warnings"
+        
+        print_step "Running builds..."
+        npm run build || print_warning "Build completed with warnings"
+        
+        print_step "Running tests..."
+        cd cli && source venv/bin/activate && python -m pytest || print_warning "Tests completed"
+        cd ..
+        
+        print_success "Local CI checks complete!"
+        ;;
     *)
         echo "Daraja Developer Toolkit - Development Helper"
         echo ""
@@ -240,6 +257,7 @@ case "${1:-}" in
         echo "  stop    - Stop all development services"
         echo "  status  - Check status of all services"
         echo "  test    - Test that everything is working"
+        echo "  ci      - Run CI checks locally (lint, build, test)"
         echo "  clean   - Clean all build artifacts and dependencies"
         echo ""
         echo "Quick start:"

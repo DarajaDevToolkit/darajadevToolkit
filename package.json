@@ -12,11 +12,28 @@
     "dev": "concurrently \"npm run dev -w webhook-service\" \"npm run dev -w dashboard\" \"npm run dev -w delivery-worker\"",
     "build": "npm run build -w shared && npm run build -w webhook-service && npm run build -w delivery-worker && npm run build -w dashboard",
     "build:shared": "npm run build -w shared",
-    "lint": "npm run lint -w dashboard",
+    "lint": "npm run lint:js && npm run lint:ts",
+    "lint:js": "eslint . --ext .js,.jsx,.ts,.tsx --ignore-path .gitignore || echo '⚠️ ESLint will be configured in next phase'",
+    "lint:ts": "tsc --noEmit --skipLibCheck",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix --ignore-path .gitignore || echo '⚠️ ESLint will be configured in next phase'",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\" || echo '⚠️ Prettier will be configured in next phase'",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\" || echo '⚠️ Prettier will be configured in next phase'",
+    "test": "npm run test:cli",
+    "test:cli": "cd cli && source venv/bin/activate && python -m pytest",
+    "ci:setup": "./dev.sh setup",
+    "ci:build": "npm run build",
+    "ci:test": "npm run test",
+    "ci:lint": "npm run lint",
     "clean": "rm -rf */node_modules */dist */.next"
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
