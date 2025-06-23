@@ -1,10 +1,18 @@
 name: CI
 
+# I am commenting this out because we leave this for production
+# on:
+#   push:
+#     branches: [main, develop]  # Only main branches
+#   pull_request:
+#     branches: [main]  # PRs to main
+
+#  since we are in active dev this is a better option
 on:
   push:
-    branches: [main, develop]
+    branches: ['**'] # All branches
   pull_request:
-    branches: [main]
+    branches: [main, develop] # PRs to main branches
 
 jobs:
   test:
