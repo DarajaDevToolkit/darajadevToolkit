@@ -26,7 +26,7 @@ def test() -> None:
 @click.option('--environment', '-e', help='Environment to test (dev/staging/prod)')
 @click.option('--payload', help='Custom JSON payload file')
 @click.pass_context
-def webhook(ctx: click.Context, environment: str = None, payload: str = None) -> None:
+def webhook(ctx: click.Context, environment: str, payload: str) -> None:
     """Send a test webhook to our endpoint."""
     config_data = ctx.obj.get('config')
     api = ctx.obj.get('api')

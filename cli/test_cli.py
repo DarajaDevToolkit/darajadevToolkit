@@ -9,9 +9,9 @@ import os
 
 # Add the src directory to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-print(f"Adding source directory to path: {current_dir}/src")
+# print(f"Adding source directory to path: {current_dir}/src")
 src_dir = os.path.join(current_dir, 'src')
-print(f"Source directory: {src_dir}")
+# print(f"Source directory: {src_dir}")
 sys.path.insert(0, src_dir)
 
 # Import pytest only when needed just in case you dont want to install it
