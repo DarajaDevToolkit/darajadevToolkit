@@ -1,11 +1,28 @@
+import { Queue } from "bullmq";
 import type { WebhookPayload } from "@daraja-toolkit/shared";
+import {
+  redisConnection,
+  QUEUE_NAMES,
+  JOB_TYPES,
+  DEFAULT_JOB_OPTIONS,
+  PRIORITY_LEVELS,
+} from "../config/queue";
 
 export class WebhookQueueService {
+  private webhookQueue: Queue;
+
+  constructor() {
+    // Initialize the webhook delivery queue
+    this.webhookQueue = new Queue(QUEUE_NAMES.WEBHOOK_DELIVERY, {
+      connection: redisConnection,
+      defaultJobOptions: DEFAULT_JOB_OPTIONS,
+    });
+  }
+
   /**
    * Queue webhook for delivery
    */
   async queueWebhook(webhookPayload: Partial<WebhookPayload>): Promise<void> {
-    // For now, just log that it would be queued
     console.log(
       "📦 Queuing webhook:",
       webhookPayload.eventType,
@@ -13,29 +30,22 @@ export class WebhookQueueService {
       webhookPayload.userId
     );
 
-    // TODO: Implement proper queue system
-    // Options:
-    // 1. Redis + Bull/BullMQ
-    // 2. Database-based queue
-    // 3. Message broker (RabbitMQ, AWS SQS)
+    // Add job to the queue
+    const job = await this.webhookQueue.add(
+      JOB_TYPES.DELIVER_WEBHOOK,
+      {
+        webhookPayload,
+        targetUrl: "", // Will be looked up by the worker
+        userId: webhookPayload.userId,
+        eventType: webhookPayload.eventType,
+      },
+      {
+        priority: PRIORITY_LEVELS.NORMAL,
+        attempts: 3,
+      }
+    );
 
-    // For now, simulate queuing
-    await this.simulateQueue(webhookPayload);
-  }
-
-  /**
-   * Simulate queue operation (development only)
-   */
-  private async simulateQueue(
-    webhookPayload: Partial<WebhookPayload>
-  ): Promise<void> {
-    // Simulate async queue operation
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`✅ Webhook queued: ${webhookPayload.eventType}`);
-        resolve();
-      }, 10); // Small delay to simulate real queue
-    });
+    console.log(`✅ Webhook queued with job ID: ${job.id}`);
   }
 
   /**
