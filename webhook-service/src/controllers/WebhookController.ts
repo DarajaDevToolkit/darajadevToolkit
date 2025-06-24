@@ -116,6 +116,89 @@ export class WebhookController {
   }
 
   /**
+   * Test priority handling - queue webhooks with different priorities
+   */
+  async testPriorities(c: Context) {
+    const userId = c.req.param("userId") || "priority_test_user";
+
+    // Create test webhook payload
+    const createTestWebhook = (priority: string, id: number) => ({
+      id: `test_${priority}_${id}_${Date.now()}`,
+      userId,
+      eventType: "stk_push_result" as WebhookEventType,
+      payload: {
+        Body: {
+          stkCallback: {
+            MerchantRequestID: `${priority}-test-${id}`,
+            CheckoutRequestID: `${priority}-checkout-${id}`,
+            ResultCode: 0,
+            ResultDesc: `Priority ${priority} test webhook ${id}`,
+          },
+        },
+      },
+      receivedAt: new Date(),
+      environment: "dev" as const,
+    });
+
+    try {
+      console.log(`🧪 [${userId}] Starting priority test...`);
+
+      // Queue webhooks in different priorities
+      // First add LOW priority jobs
+      await this.queueService.queueWebhookWithPriority(
+        createTestWebhook("LOW", 1),
+        1 // LOW priority
+      );
+      await this.queueService.queueWebhookWithPriority(
+        createTestWebhook("LOW", 2),
+        1 // LOW priority
+      );
+
+      // Then add NORMAL priority jobs
+      await this.queueService.queueWebhookWithPriority(
+        createTestWebhook("NORMAL", 1),
+        5 // NORMAL priority
+      );
+      await this.queueService.queueWebhookWithPriority(
+        createTestWebhook("NORMAL", 2),
+        5 // NORMAL priority
+      );
+
+      // Then add HIGH priority jobs
+      await this.queueService.queueWebhookWithPriority(
+        createTestWebhook("HIGH", 1),
+        10 // HIGH priority
+      );
+
+      // Finally add URGENT priority job
+      await this.queueService.queueWebhookWithPriority(
+        createTestWebhook("URGENT", 1),
+        20 // URGENT priority
+      );
+
+      console.log(`✅ [${userId}] Priority test completed - 6 jobs queued`);
+      console.log(`📋 Expected processing order: URGENT → HIGH → NORMAL → LOW`);
+
+      return c.json({
+        message: "Priority test completed",
+        userId,
+        jobsQueued: 6,
+        expectedOrder: ["URGENT", "HIGH", "NORMAL", "NORMAL", "LOW", "LOW"],
+        note: "Check worker logs to see actual processing order",
+      });
+    } catch (error: any) {
+      console.error(`❌ [${userId}] Priority test failed:`, error);
+      return c.json(
+        {
+          error: "Priority test failed",
+          message: error.message,
+        },
+        500
+      );
+    }
+  }
+
+  /**
    * Health check endpoint
    */
   async healthCheck(c: Context) {
@@ -124,5 +207,46 @@ export class WebhookController {
       service: "webhook-service",
       timestamp: new Date().toISOString(),
     });
+  }
+
+  /**
+   * Queue health check endpoint
+   */
+  async queueHealthCheck(c: Context) {
+    try {
+      const queueHealth = await this.queueService.getQueueHealth();
+
+      const httpStatus = queueHealth.status === "healthy" ? 200 : 503;
+
+      return c.json(
+        {
+          service: "webhook-service",
+          timestamp: new Date().toISOString(),
+          ...queueHealth,
+        },
+        httpStatus
+      );
+    } catch (error: any) {
+      return c.json(
+        {
+          service: "webhook-service",
+          timestamp: new Date().toISOString(),
+          status: "unhealthy",
+          error: error.message,
+          queue: {
+            name: "webhook-delivery",
+            waiting: 0,
+            active: 0,
+            failed: 0,
+            completed: 0,
+          },
+          redis: {
+            connected: false,
+            error: error.message,
+          },
+        },
+        503
+      );
+    }
   }
 }

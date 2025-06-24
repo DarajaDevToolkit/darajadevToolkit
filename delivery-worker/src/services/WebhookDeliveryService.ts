@@ -36,7 +36,9 @@ export class WebhookDeliveryService {
           "User-Agent": "Daraja-Toolkit/1.0",
           "X-Webhook-Event": webhookPayload.eventType,
           "X-Webhook-ID": webhookPayload.id,
-          "X-Webhook-Timestamp": this.formatTimestamp(webhookPayload.receivedAt),
+          "X-Webhook-Timestamp": this.formatTimestamp(
+            webhookPayload.receivedAt
+          ),
         },
       });
 
@@ -126,20 +128,20 @@ export class WebhookDeliveryService {
     if (!timestamp) {
       return new Date().toISOString();
     }
-    
+
     if (timestamp instanceof Date) {
       return timestamp.toISOString();
     }
-    
-    if (typeof timestamp === 'string') {
+
+    if (typeof timestamp === "string") {
       try {
         return new Date(timestamp).toISOString();
       } catch (error) {
-        console.warn('Invalid timestamp format:', timestamp);
+        console.warn("Invalid timestamp format:", timestamp);
         return new Date().toISOString();
       }
     }
-    
+
     // Fallback to current time
     return new Date().toISOString();
   }
