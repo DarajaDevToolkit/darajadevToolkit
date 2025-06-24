@@ -4,6 +4,7 @@ import type {
   DeliveryAttempt,
   DeliveryStatus,
 } from "@daraja-toolkit/shared";
+import { QueueConsumer } from "./services/QueueConsumer";
 
 export class WebhookDeliveryService {
   private maxRetries: number = 3;
@@ -177,6 +178,26 @@ export class WebhookProcessor {
 
 // Example usage (for testing)
 if (import.meta.main) {
+  console.log("🚀 Starting Webhook Delivery Worker...");
+
+  // Start the queue consumer
+  const queueConsumer = new QueueConsumer();
+
+  // Handle graceful shutdown
+  process.on("SIGINT", async () => {
+    console.log("🛑 Received SIGINT, shutting down gracefully...");
+    await queueConsumer.shutdown();
+    process.exit(0);
+  });
+
+  process.on("SIGTERM", async () => {
+    console.log("🛑 Received SIGTERM, shutting down gracefully...");
+    await queueConsumer.shutdown();
+    process.exit(0);
+  });
+
+  // Keep the old test code for manual testing (commented out)
+  /*
   const processor = new WebhookProcessor();
 
   // Mock webhook payload for testing
@@ -200,4 +221,5 @@ if (import.meta.main) {
 
   console.log("🧪 Testing webhook delivery...");
   processor.processWebhook(mockWebhook);
+  */
 }
