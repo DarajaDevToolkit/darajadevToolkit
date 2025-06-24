@@ -8,10 +8,10 @@
     "build": "bun build src/server.ts --outdir ./dist",
     "start": "bun run src/server.ts",
     "generate": "drizzle-kit generate",
-    "migrate": " tsx src/drizzle/migrate.ts",
+    "migrate": "bun run src/drizzle/migrate.ts",
     "studio": "drizzle-kit studio",
-    "push": " drizzle-kit generate && tsx src/drizzle/migrate.ts",
-    "seed": "tsx src/drizzle/seed.ts"
+    "push": "drizzle-kit generate && bun run src/drizzle/migrate.ts",
+    "seed": "bun run src/drizzle/seed.ts"
   },
   "dependencies": {
     "bullmq": "^5.56.0",

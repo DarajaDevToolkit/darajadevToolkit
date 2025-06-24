@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+    "build": "bun run tsc",
+    "dev": "bun run tsc --watch"
   },
   "devDependencies": {
     "typescript": "^5"
