@@ -4,9 +4,6 @@ import type {
   DeliveryAttempt,
   DeliveryStatus,
 } from "@daraja-toolkit/shared";
-import { QueueConsumer } from "./services/QueueConsumer";
-
-console.log("🚀 Worker.ts loaded!");
 
 export class WebhookDeliveryService {
   private maxRetries: number = 3;
@@ -39,7 +36,7 @@ export class WebhookDeliveryService {
           "User-Agent": "Daraja-Toolkit/1.0",
           "X-Webhook-Event": webhookPayload.eventType,
           "X-Webhook-ID": webhookPayload.id,
-          "X-Webhook-Timestamp": webhookPayload.receivedAt.toISOString(),
+          "X-Webhook-Timestamp": this.formatTimestamp(webhookPayload.receivedAt),
         },
       });
 
@@ -121,116 +118,29 @@ export class WebhookDeliveryService {
   private generateId(): string {
     return `delivery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-}
 
-// TODO: This will be replaced with a proper job queue (Bull/BullMQ)
-export class WebhookProcessor {
-  private deliveryService: WebhookDeliveryService;
-
-  constructor() {
-    this.deliveryService = new WebhookDeliveryService();
-  }
-
-  async processWebhook(webhookPayload: WebhookPayload) {
-    console.log(
-      `📝 Processing webhook: ${webhookPayload.id} for user: ${webhookPayload.userId}`
-    );
-
-    // TODO: Look up user's webhook URLs from database
-    const userWebhookUrl = await this.getUserWebhookUrl(
-      webhookPayload.userId,
-      webhookPayload.environment
-    );
-
-    if (!userWebhookUrl) {
-      console.error(
-        `❌ No webhook URL configured for user ${webhookPayload.userId} in ${webhookPayload.environment}`
-      );
-      return;
+  /**
+   * Safely format timestamp - handles Date objects, strings, or undefined values
+   */
+  private formatTimestamp(timestamp: Date | string | undefined): string {
+    if (!timestamp) {
+      return new Date().toISOString();
     }
-
-    // Deliver the webhook with retries
-    const attempts = await this.deliveryService.deliverWithRetries(
-      webhookPayload,
-      userWebhookUrl
-    );
-
-    // TODO: Store delivery attempts in database
-    console.log(`📊 Delivery complete. Total attempts: ${attempts.length}`);
-
-    return attempts;
-  }
-
-  private async getUserWebhookUrl(
-    userId: string,
-    environment: string
-  ): Promise<string | null> {
-    // TODO: Implement database lookup
-    // For now, return a mock URL for testing
-    if (environment === "dev") {
-      return `http://localhost:3000/webhooks/mpesa`;
+    
+    if (timestamp instanceof Date) {
+      return timestamp.toISOString();
     }
-
-    console.warn(
-      `No webhook URL configured for user ${userId} in ${environment}`
-    );
-    return null;
+    
+    if (typeof timestamp === 'string') {
+      try {
+        return new Date(timestamp).toISOString();
+      } catch (error) {
+        console.warn('Invalid timestamp format:', timestamp);
+        return new Date().toISOString();
+      }
+    }
+    
+    // Fallback to current time
+    return new Date().toISOString();
   }
-}
-
-// Example usage (for testing)
-if (import.meta.main) {
-  console.log("🚀 Starting Webhook Delivery Worker...");
-
-  try {
-    console.log("📡 Creating queue consumer...");
-    // Start the queue consumer
-    const queueConsumer = new QueueConsumer();
-    console.log("✅ Queue consumer created successfully!");
-
-    // Handle graceful shutdown
-    process.on("SIGINT", async () => {
-      console.log("🛑 Received SIGINT, shutting down gracefully...");
-      await queueConsumer.shutdown();
-      process.exit(0);
-    });
-
-    process.on("SIGTERM", async () => {
-      console.log("🛑 Received SIGTERM, shutting down gracefully...");
-      await queueConsumer.shutdown();
-      process.exit(0);
-    });
-
-    console.log("🎯 Worker is running and listening for jobs...");
-  } catch (error) {
-    console.error("💥 Failed to start worker:", error);
-    process.exit(1);
-  }
-
-  // Keep the old test code for manual testing (commented out)
-  /*
-  const processor = new WebhookProcessor();
-
-  // Mock webhook payload for testing
-  const mockWebhook: WebhookPayload = {
-    id: "test_webhook_123",
-    userId: "user_123",
-    eventType: "stk_push_result",
-    payload: {
-      Body: {
-        stkCallback: {
-          MerchantRequestID: "test-merchant-123",
-          CheckoutRequestID: "test-checkout-456",
-          ResultCode: 0,
-          ResultDesc: "Success",
-        },
-      },
-    },
-    receivedAt: new Date(),
-    environment: "dev",
-  };
-
-  console.log("🧪 Testing webhook delivery...");
-  processor.processWebhook(mockWebhook);
-  */
 }

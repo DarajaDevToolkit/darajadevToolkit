@@ -8,6 +8,7 @@ const redisConnection = {
   port: parseInt(process.env.REDIS_PORT || "6379"),
   password: process.env.REDIS_PASSWORD,
   db: parseInt(process.env.REDIS_DB || "0"),
+  maxRetriesPerRequest: null, // Required for Workers according to BullMQ docs
 };
 
 const QUEUE_NAMES = {
@@ -27,7 +28,11 @@ export class QueueConsumer {
   private deliveryService: WebhookDeliveryService;
 
   constructor() {
+    console.log("🔧 Initializing QueueConsumer...");
+    console.log("🔧 Redis config:", redisConnection);
+
     this.deliveryService = new WebhookDeliveryService();
+    console.log("🔧 WebhookDeliveryService created");
 
     // Create BullMQ worker
     this.worker = new Worker(
@@ -38,6 +43,7 @@ export class QueueConsumer {
         concurrency: 5, // Process up to 5 jobs concurrently
       }
     );
+    console.log("🔧 BullMQ Worker created");
 
     // Set up event listeners
     this.setupEventListeners();
@@ -66,8 +72,13 @@ export class QueueConsumer {
       id: webhookPayload.id || `webhook_${Date.now()}`,
       userId: userId || webhookPayload.userId || "",
       eventType: webhookPayload.eventType || "stk_push_result",
-      payload: webhookPayload.payload || {},
-      receivedAt: webhookPayload.receivedAt || new Date(),
+      payload: webhookPayload.payload as any, // Type assertion for now
+      receivedAt:
+        webhookPayload.receivedAt instanceof Date
+          ? webhookPayload.receivedAt
+          : webhookPayload.receivedAt
+            ? new Date(webhookPayload.receivedAt as string | number)
+            : new Date(),
       environment: webhookPayload.environment || "dev",
     };
 
@@ -96,9 +107,9 @@ export class QueueConsumer {
     environment: string
   ): Promise<string | null> {
     // TODO: Implement database lookup
-    // For now, return a mock URL for testing
+    // For now, return a test URL that actually works
     if (environment === "dev") {
-      return `http://localhost:3000/webhooks/mpesa`;
+      return `http://localhost:3002/webhooks/mpesa`;
     }
 
     console.warn(
@@ -111,6 +122,12 @@ export class QueueConsumer {
    * Set up event listeners for monitoring
    */
   private setupEventListeners() {
+    console.log("🔧 Setting up event listeners...");
+
+    this.worker.on("ready", () => {
+      console.log("🎯 Queue consumer ready!");
+    });
+
     this.worker.on("completed", (job) => {
       console.log(`✅ Job ${job.id} completed successfully`);
     });
@@ -121,6 +138,10 @@ export class QueueConsumer {
 
     this.worker.on("error", (err) => {
       console.error("🚨 Worker error:", err);
+    });
+
+    this.worker.on("stalled", (jobId) => {
+      console.warn(`⚠️  Job ${jobId} stalled`);
     });
 
     console.log("🎯 Queue consumer started and listening for jobs...");
