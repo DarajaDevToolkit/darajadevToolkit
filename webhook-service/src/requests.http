@@ -1,0 +1,19 @@
+### User Registration
+POST http://localhost:3001/register
+Content-Type: application/json
+
+{
+  "name": "Brian Kamande",
+  "email": "kamande@gmail.com",
+  "phoneNumber": "+254700000000",
+  "password": "SuperSecret123!"
+}
+
+### User Login
+POST http://localhost:3001/login
+Content-Type: application/json
+
+{
+  "email": "kamande@gmail.com",
+  "password": "SuperSecret123!"
+}

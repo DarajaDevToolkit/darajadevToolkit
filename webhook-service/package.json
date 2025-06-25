@@ -18,7 +18,9 @@
     "drizzle-kit": "^0.31.1",
     "drizzle-orm": "^0.44.2",
     "hono": "^4.6.0",
-    "pg": "^8.16.2"
+    "jose": "^6.0.11",
+    "pg": "^8.16.2",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/bun": "latest",

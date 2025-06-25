@@ -1,4 +1,7 @@
-import { pgTable, uuid, varchar, timestamp, boolean, text, jsonb, integer } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, boolean, text, jsonb, integer,pgEnum } from 'drizzle-orm/pg-core';
+
+//Enums
+export const roleEnum = pgEnum("user_type", ["user", "admin", "super_admin", "disabled"]);
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -7,6 +10,7 @@ export const users = pgTable('users', {
   phoneNumber: varchar('phone_number', { length: 20 }).notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   apiKey: varchar('api_key', { length: 64 }).unique(),
+  role: roleEnum("role").default("user"),// Role-based access control
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()),
