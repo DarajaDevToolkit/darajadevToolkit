@@ -63,7 +63,7 @@ install_deps() {
     
     # Root workspace dependencies
     print_step "Installing workspace dependencies..."
-    npm install
+    bun install
     
     # Webhook service (Bun)
     print_step "Installing webhook service dependencies..."
