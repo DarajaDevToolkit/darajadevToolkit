@@ -96,6 +96,8 @@ start_dev() {
         print_step "Starting Docker services..."
         if docker compose up -d 2>/dev/null; then
             print_success "Docker services started"
+        elif docker-compose up -d 2>/dev/null; then
+            print_success "Docker services started"
         else
             print_warning "Could not start Docker services - check if Docker is running"
         fi
@@ -132,7 +134,9 @@ stop_dev() {
     
     # Stop Docker services
     if command -v docker &> /dev/null; then
-        docker compose down 2>/dev/null || true
+        if ! docker compose down 2>/dev/null; then
+            docker-compose down 2>/dev/null || true
+        fi
     fi
     
     print_success "Development services stopped"
@@ -156,10 +160,12 @@ show_status() {
     fi
     
     # Check Docker services
-    if command -v docker &> /dev/null && docker compose ps 2>/dev/null | grep -q "Up"; then
-        print_success "Docker services running"
-    else
-        echo "  🐳 Docker Services: Not running"
+    if command -v docker &> /dev/null; then
+        if docker compose ps 2>/dev/null | grep -q "Up" || docker-compose ps 2>/dev/null | grep -q "Up"; then
+            print_success "Docker services running"
+        else
+            echo "  🐳 Docker Services: Not running"
+        fi
     fi
     
     # Check CLI
@@ -226,7 +232,7 @@ case "${1:-}" in
         rm -rf */.next
         rm -rf */dist
         rm -rf cli/venv
-        docker compose down -v 2>/dev/null || true
+        docker compose down -v 2>/dev/null || docker-compose down -v 2>/dev/null || true
         print_success "Cleanup complete"
         ;;
     "ci")
