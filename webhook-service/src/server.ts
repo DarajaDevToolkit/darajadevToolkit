@@ -29,9 +29,7 @@ app.route("/",authRouter);
 (async () => {
   try {
     const result = await db.execute(sql`SELECT NOW()`);
-    console.log('✅ Database connection successful:',
-      //  result
-      );
+    console.log('✅ Database connection successful:',result);
   } catch (error) {
     console.error('❌ Database connection failed:', error);
   }

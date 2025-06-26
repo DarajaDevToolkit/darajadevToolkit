@@ -3,9 +3,9 @@ POST http://localhost:3001/register
 Content-Type: application/json
 
 {
-  "name": "Brian Kamande",
-  "email": "kamande@gmail.com",
-  "phoneNumber": "+254700000000",
+  "name": "Jinef John",
+  "email": "john@gmail.com",
+  "phoneNumber": "+254742252911",
   "password": "SuperSecret123!"
 }
 
@@ -15,5 +15,23 @@ Content-Type: application/json
 
 {
   "email": "kamande@gmail.com",
-  "password": "SuperSecret123!"
+  "password": "SuperSecret123!"   
 }
+
+### Get All Users
+GET http://localhost:3001/users
+
+### Get User by ID
+GET http://localhost:3001/users/1791d7bf-e53e-423f-830e-47d1cde572ee
+
+### Update User
+PUT http://localhost:3001/users/1791d7bf-e53e-423f-830e-47d1cde572ee
+Content-Type: application/json
+
+{
+  "name": "Updated Kamande",
+  "phoneNumber": "+254700000001"
+}
+
+### Delete User
+DELETE http://localhost:3001/users/REPLACE_WITH_USER_ID

@@ -1,13 +1,10 @@
 import { Hono } from 'hono';
-import { AuthService } from '../services/auth.service';
-import { registerUserValidator, loginUserValidator } from '../validators/user.validators';
+import { loginUserController, registerUserController, getUsers, getUserById, updateUser, deleteUser } from '../controllers/auth.controller';
 
-// Simple in-memory rate limiter (per IP, for demo; use Redis for production)
 // //use request-ip library for better IP handling later on⬇
 const loginAttempts: Record<string, { count: number; last: number }> = {};
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-
 import type { Context, Next } from 'hono';
 
 function rateLimit(c: Context, next: Next) {
@@ -29,37 +26,13 @@ function rateLimit(c: Context, next: Next) {
 const authRouter = new Hono();
 
 // Registration endpoint
-authRouter.post('/register', async (c) => {
-  const body = await c.req.json();
-  const result = registerUserValidator.safeParse(body);
-  if (!result.success) {
-    return c.json({ error: 'Validation failed', details: result.error.flatten() }, 422);
-  }
-  const { name, email, phoneNumber, password } = result.data;
-  try {
-    const user = await AuthService.register({ name, email, phoneNumber, password });
-    return c.json({ message: 'User registered successfully✅', user }, 201);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : 'Unknown error⚠';
-    return c.json({ error: message }, 400);
-  }
-});
-
+authRouter.post('/register',registerUserController);
 // Login endpoint with rate limiting
-authRouter.post('/login', rateLimit, async (c) => {
-  const body = await c.req.json();
-  const result = loginUserValidator.safeParse(body);
-  if (!result.success) {
-    return c.json({ error: 'Validation failed', details: result.error.flatten() }, 422);
-  }
-  const { email, password } = result.data;
-  try {
-    const { accessToken, refreshToken, user } = await AuthService.login({ email, password });
-    return c.json({ message: 'Login successful✅', accessToken, refreshToken, user });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : 'Unknown error❗';
-    return c.json({ error: message }, 401);
-  }
-});
+authRouter.post('/login', rateLimit, loginUserController);
+// User CRUD endpoints
+authRouter.get('/users', getUsers);
+authRouter.get('/users/:id', getUserById);
+authRouter.put('/users/:id', updateUser);
+authRouter.delete('/users/:id', deleteUser);
 
 export default authRouter;

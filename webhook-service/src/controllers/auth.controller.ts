@@ -1,72 +1,108 @@
-// TODO: Replace 'any' with proper express types when @types/express is installed
-// import type { Request, Response } from 'express';
-import { AuthService } from '../services/auth.service';
+import type { Context } from 'hono';
+import { registerUserService, loginUserService, getUsersService, getUserByIdService, updateUserService, deleteUserService } from 'src/services/auth.service';
 
-export class AuthController {
-  /**
-   * User registration endpoint
-   * - Hashes password
-   * - Generates secure API key
-   * - Returns user info (never password)
-   * - Handles all errors robustly
-   */
-  static async register(req: any, res: any) {
+export const registerUserController = async (c: Context) => {
     try {
-      const { name, email, phoneNumber, password } = req.body;
-      // Input validation should be added here (omitted for brevity)
-      try {
-        const user = await AuthService.register({ name, email, phoneNumber, password });
-        // Never return password hash
-        res.status(201).json({
-          message: 'User registered successfully',
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            phoneNumber: user.phoneNumber,
-            apiKey: user.apiKey,
-            role: user.role,
-          },
-        });
-      } catch (err: any) {
-        // Known error from AuthService
-        res.status(400).json({ error: err.message || 'Registration failed.' });
-      }
-    } catch (err: any) {
-      // Unexpected error
-      console.error('Unexpected error in register:', err);
-      res.status(500).json({ error: 'Internal server error during registration.' });
+        const user = await c.req.json();
+        const message = await registerUserService(user)
+        return c.json({ message }, 201);
     }
-  }
-
-  // User login endpoint, - Validates credentials, Issues access and refresh tokens, Returns tokens and user info, Handles all errors robustly
-  static async login(req: any, res: any) {
-    try {
-      const { email, password } = req.body;
-      // Input validation should be added here (omitted for brevity)
-      try {
-        const { accessToken, refreshToken, user } = await AuthService.login({ email, password });
-        // Set refresh token as httpOnly cookie (recommended for web clients)
-        // res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
-        res.status(200).json({
-          message: 'Login successful',
-          accessToken,
-          refreshToken, // For mobile/CLI, return in body; for web, use httpOnly cookie
-          user,
-        });
-      } catch (err: any) {
-        // Known error from AuthService
-        res.status(401).json({ error: err.message || 'Login failed.' });
-      }
-    } catch (err: any) {
-      // Unexpected error
-      console.error('Unexpected error in login:', err);
-      res.status(500).json({ error: 'Internal server error during login.' });
+    catch (error: any) {
+        return c.json({ error: error.message }, 400);
     }
-  }
-
-  // get all users endpoint
-  //get user by id endpoint
-  // update user endpoint
-  // delete user endpoint
 }
+
+export const loginUserController = async (c: Context) => {
+    try {
+        const body = await c.req.json();
+        console.log("Received login request:", body);
+
+        if (!body.email || !body.password) {
+            console.error("Missing email or password");
+            return c.json({ message: "Email and password are required" }, 400);
+        }
+
+        const { accessToken, refreshToken, user } = await loginUserService(body.email, body.password);
+
+        console.log("Login successful:", user);
+        return c.json({ accessToken, refreshToken, user }, 200);
+    } catch (error: any) {
+        console.error("Login error:", error.message);
+
+        if (error.message === "User not found.") {
+            return c.json({ error: "User not found. Please register." }, 404);
+        } else if (error.message === "Invalid credentials.") {
+            return c.json({ error: "Invalid email or password." }, 401);
+        } else {
+            return c.json({ error: "An error occurred. Please try again." }, 500);
+        }
+    }
+}
+
+export const getUsers = async (c: Context) => {
+    try {
+        const page = Number(c.req.query('page')) || 1;
+        const limit = Number(c.req.query('limit')) || 10;
+        const data = await getUsersService(page, limit);
+        return c.json(data, 200);
+    } catch (error: any) {
+        return c.json({ error: error.message }, 400);
+    }
+};
+
+export const getUserById = async (c: Context) => {
+    try {
+        const id = c.req.param('id');
+        if (!id) {
+            return c.json({ error: 'Invalid ID' }, 400);
+        }
+        const user = await getUserByIdService(id);
+        if (!user) {
+            return c.json({ message: 'User not found' }, 404);
+        }
+        return c.json(user, 200);
+    } catch (error: any) {
+        return c.json({ error: error.message }, 400);
+    }
+};
+
+export const updateUser = async (c: Context) => {
+    const id = c.req.param('id');
+    if (!id) {
+        return c.json({ error: 'Invalid ID' }, 400);
+    }
+    const user = await c.req.json();
+    try {
+        const existingUser = await getUserByIdService(id);
+        if (!existingUser) {
+            return c.json({ message: 'User not found' }, 404);
+        }
+        const updateResult = await updateUserService(id, user);
+        if (!updateResult) {
+            return c.json({ message: 'User not updated' }, 400);
+        }
+        return c.json({ message: 'User updated successfully' }, 200);
+    } catch (error: any) {
+        return c.json({ error: error.message }, 400);
+    }
+};
+
+export const deleteUser = async (c: Context) => {
+    const id = c.req.param('id');
+    if (!id) {
+        return c.json({ error: 'Invalid ID' }, 400);
+    }
+    try {
+        const existingUser = await getUserByIdService(id);
+        if (!existingUser) {
+            return c.json({ message: 'User not found' }, 404);
+        }
+        const deleteResult = await deleteUserService(id);
+        if (!deleteResult) {
+            return c.json({ message: 'User not deleted' }, 400);
+        }
+        return c.json({ message: 'User deleted successfully' }, 200);
+    } catch (error: any) {
+        return c.json({ error: error.message }, 400);
+    }
+};
