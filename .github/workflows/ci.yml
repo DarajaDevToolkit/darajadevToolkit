@@ -10,7 +10,7 @@ name: CI
 #  since we are in active dev this is a better option
 on:
   push:
-    branches: ['**'] # Run on all branches
+    branches: ["**"] # Run on all branches
   pull_request:
     branches: [main, develop]
 
@@ -53,7 +53,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install dependencies with Bun & Python
         run: |
@@ -92,6 +92,33 @@ jobs:
           cd dashboard
           bun run build || echo "⚠️ Dashboard build issue"
 
+      - name: Run Tests for Projects
+        run: |
+          run_tests() {
+            local dir=$1
+            echo "🔍 Running tests in $dir..."
+            cd "$dir" || exit 1
+
+            if [ -f package.json ]; then
+              if bun run | grep -q test; then
+                echo "📦 Found bun test script in $dir"
+                bun run test --coverage && echo "✅ Tests passed for $dir" || { echo "❌ Tests failed for $dir"; exit 1; }
+              elif npx --no-install jest --version >/dev/null 2>&1; then
+                echo "📦 No bun test script, falling back to Jest in $dir"
+                npx jest --coverage && echo "✅ Tests passed for $dir" || { echo "❌ Tests failed for $dir"; exit 1; }
+              else
+                echo "⚠️ No test script or Jest setup found for $dir"
+              fi
+            else
+              echo "⚠️ No package.json found in $dir"
+            fi
+
+            cd ..
+          }
+
+          run_tests webhook-service
+          run_tests dashboard
+
       - name: Test CLI
         run: |
           cd cli
@@ -128,7 +155,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |

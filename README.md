@@ -14,7 +14,7 @@ Every Kenyan developer integrating M-Pesa has experienced:
 - **No retry mechanism** when webhooks fail
 
 ## Summary 
-This is a developer toolkit for M-Pesa (Daraja) that ensures webhooks are reliably delivered, retried if they fail, and logged for visibility—solving common issues like missed callbacks, sandbox failures, and silent delivery errors.
+This is a developer toolkit for M-Pesa (Daraja) that ensures webhooks are reliably delivered, retried if they fail, and logged for visibility;solving common issues like missed callbacks, sandbox failures, and silent delivery errors.
 
 ## 🚀 Our Solution
 
