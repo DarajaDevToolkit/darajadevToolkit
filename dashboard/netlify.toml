@@ -1,6 +1,6 @@
 [build]
   base    = "dashboard"
-  command = "bun --workspace @daraja-toolkit/dashboard run build"
+  command = "npm --workspace @daraja-toolkit/dashboard run build"
   publish = "dashboard/.next"
 
 [[plugins]]
