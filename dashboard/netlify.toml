@@ -1,7 +1,7 @@
 [build]
   base    = "dashboard"
-  command = "npm --workspace @daraja-toolkit/dashboard run build"
-  publish = "dashboard/.next"
+  command = "npm --workspace @daraja‑toolkit/dashboard run build"
+  publish = ".next"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
