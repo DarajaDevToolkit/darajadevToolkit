@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Mail, CheckCircle, AlertCircle, ArrowRight, Code, Zap, Shield, Clock, Users, TrendingUp } from 'lucide-react';
-import { errorToast, successToast } from "@/lib/utils";
+import { errorToast, successToast } from "@/utils/helpers";
 
 export default function HomePage() {
   const [email, setEmail] = useState('');
