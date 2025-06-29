@@ -6,6 +6,7 @@ import { errorHandler, requestLogger } from "./middleware";
 import db from "./drizzle/db";
 import { sql } from "drizzle-orm";
 import authRouter from "./routes/auth.routes";
+import settingsRoutes from "./routes/settings.routes";
 
 const app = new Hono();
 
@@ -23,7 +24,8 @@ app.use("*", logger());
 
 // Routes
 app.route("/", webhookRoutes);
-app.route("/",authRouter);
+app.route("/", authRouter);
+app.route("/", settingsRoutes);
 
 // Test database connection at startup
 (async () => {
