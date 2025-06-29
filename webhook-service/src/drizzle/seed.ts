@@ -1,5 +1,5 @@
 import db from './db';
-import { users, webhooks, deliveryAttempts } from './schema';
+import { users, webhooks, deliveryAttempts, userSettings } from './schema';
 
 async function seed() {
   // Insert users
@@ -28,6 +28,28 @@ async function seed() {
   }
   if (!insertedUsers[0]) {
     throw new Error('❌ Failed to insert users');
+  }
+  const user = insertedUsers[0]!;
+
+  // Seed user settings for environments
+  const envs = ['development', 'staging', 'production'] as const;
+  try {
+    const settingsValues: Array<{
+      userId: string;
+      environment: typeof envs[number];
+      webhookUrl: string;
+    }> = envs.map((environment) => ({
+      userId: user.id,
+      environment,
+      webhookUrl: `https://${environment}.example.com/webhook/${user.id}`,
+    }));
+    const insertedSettings = await db.insert(userSettings)
+      .values(settingsValues)
+      .returning();
+    console.log('⚙️  User settings inserted:', insertedSettings);
+  } catch (err) {
+    console.error('❌ User settings insert error:', err);
+    throw err;
   }
 
   // Insert webhooks for each user

@@ -44,9 +44,23 @@ export const deliveryAttempts = pgTable('delivery_attempts', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+export const environmentEnum = pgEnum("environment", ["development", "staging", "production"]);
+
+// Add user_settings table for per-user environment webhook URLs
+export const userSettings = pgTable('user_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  environment: environmentEnum('environment').notNull(),
+  webhookUrl: text('webhook_url').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()),
+});
+
 export type DeliveryAttempt = typeof deliveryAttempts.$inferSelect;
 export type NewDeliveryAttempt = typeof deliveryAttempts.$inferInsert;
 export type Webhook = typeof webhooks.$inferSelect;
 export type NewWebhook = typeof webhooks.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+export type UserSetting = typeof userSettings.$inferSelect;
+export type NewUserSetting = typeof userSettings.$inferInsert;
