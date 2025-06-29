@@ -192,22 +192,22 @@ jobs:
   #       run: |
   #         npx prettier --check . || exit 1
 
-  build-and-push-docker:
-    runs-on: ubuntu-latest
-    needs: [test]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push webhook-service
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        run: |
-          docker build -t $DOCKERHUB_USERNAME/darajadev-webhook-service:latest ./webhook-service
-          docker push $DOCKERHUB_USERNAME/darajadev-webhook-service:latest
+  # build-and-push-docker:
+  #   runs-on: ubuntu-latest
+  #   needs: [test]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Log in to Docker Hub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Build and push webhook-service
+  #       env:
+  #         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  #       run: |
+  #         docker build -t $DOCKERHUB_USERNAME/darajadev-webhook-service:latest ./webhook-service
+  #         docker push $DOCKERHUB_USERNAME/darajadev-webhook-service:latest
       # - name: Build and push dashboard
       #   env:
       #     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
