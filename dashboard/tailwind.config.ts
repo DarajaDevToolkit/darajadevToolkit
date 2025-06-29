@@ -8,7 +8,18 @@ export default {
 		"./src/app/**/*.{js,ts,jsx,tsx,mdx}",
 	],
 	theme: {
+		container: {
+			center: true,
+			padding: "2rem",
+			screens: {
+				"2xl": "1400px",
+			},
+		},
 		extend: {
+			fontFamily: {
+				sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui'],
+				mono: ['SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Fira Code', 'monospace'],
+			},
 			colors: {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
