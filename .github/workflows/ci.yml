@@ -208,12 +208,12 @@ jobs:
         run: |
           docker build -t $DOCKERHUB_USERNAME/darajadev-webhook-service:latest ./webhook-service
           docker push $DOCKERHUB_USERNAME/darajadev-webhook-service:latest
-      - name: Build and push dashboard
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        run: |
-          docker build -f ./dashboard/Dockerfile -t $DOCKERHUB_USERNAME/darajadev-dashboard:latest .
-          docker push $DOCKERHUB_USERNAME/darajadev-dashboard:latest
+      # - name: Build and push dashboard
+      #   env:
+      #     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      #   run: |
+      #     docker build -f ./dashboard/Dockerfile -t $DOCKERHUB_USERNAME/darajadev-dashboard:latest .
+      #     docker push $DOCKERHUB_USERNAME/darajadev-dashboard:latest
 
   # trivy-scan:
   #   runs-on: ubuntu-latest
