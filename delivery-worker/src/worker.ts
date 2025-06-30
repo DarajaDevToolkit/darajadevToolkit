@@ -4,6 +4,17 @@ import type {
   DeliveryAttempt,
   DeliveryStatus,
 } from "@daraja-toolkit/shared";
+import { QueueConsumer } from "./services/QueueConsumer";
+
+console.log("🚀 Worker.ts loaded!");
+
+// User retry settings interface for API compatibility
+export interface UserRetrySettingsAPI {
+  maxRetries: number;
+  initialDelayMs: number;
+  maxDelayMs: number;
+  backoffStrategy: string;
+}
 
 export class WebhookDeliveryService {
   private maxRetries: number = 3;
@@ -67,11 +78,26 @@ export class WebhookDeliveryService {
 
   async deliverWithRetries(
     webhookPayload: WebhookPayload,
-    targetUrl: string
+    targetUrl: string,
+    userRetrySettings?: UserRetrySettingsAPI
   ): Promise<DeliveryAttempt[]> {
+    // Use user-specific settings if provided, otherwise use defaults
+    const maxRetries = userRetrySettings?.maxRetries ?? this.maxRetries;
+    const baseDelay = userRetrySettings?.initialDelayMs ?? this.baseRetryDelay;
+    const maxDelay = userRetrySettings?.maxDelayMs ?? 30000; // 30 seconds max
+    const backoffStrategy = userRetrySettings?.backoffStrategy ?? "exponential";
+
+    console.log(`🔄 Starting delivery with settings:`, {
+      maxRetries,
+      baseDelay,
+      maxDelay,
+      backoffStrategy,
+      isUserCustom: !!userRetrySettings,
+    });
+
     const attempts: DeliveryAttempt[] = [];
 
-    for (let attempt = 0; attempt < this.maxRetries; attempt++) {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
       const deliveryAttempt = await this.deliverWebhook(
         webhookPayload,
         targetUrl
@@ -84,12 +110,15 @@ export class WebhookDeliveryService {
       }
 
       // If not the last attempt, wait before retrying
-      if (attempt < this.maxRetries - 1) {
-        const delay = this.calculateRetryDelay(attempt);
+      if (attempt < maxRetries - 1) {
+        const delay = this.calculateRetryDelay(
+          attempt,
+          baseDelay,
+          maxDelay,
+          backoffStrategy
+        );
         console.log(
-          `⏳ Retrying in ${delay}ms (attempt ${attempt + 2}/${
-            this.maxRetries
-          })`
+          `⏳ Retrying in ${delay}ms (attempt ${attempt + 2}/${maxRetries})`
         );
         await this.sleep(delay);
       }
@@ -98,7 +127,7 @@ export class WebhookDeliveryService {
     const lastAttempt = attempts[attempts.length - 1];
     if (lastAttempt.status === "failed") {
       console.error(
-        `💀 Webhook ${webhookPayload.id} failed after ${this.maxRetries} attempts`
+        `💀 Webhook ${webhookPayload.id} failed after ${maxRetries} attempts`
       );
       lastAttempt.status = "dead_letter";
     }
@@ -106,9 +135,32 @@ export class WebhookDeliveryService {
     return attempts;
   }
 
-  private calculateRetryDelay(attemptNumber: number): number {
-    // Exponential backoff: 1s, 2s, 4s, 8s...
-    return this.baseRetryDelay * Math.pow(2, attemptNumber);
+  private calculateRetryDelay(
+    attemptNumber: number,
+    baseDelay: number = this.baseRetryDelay,
+    maxDelay: number = 30000,
+    strategy: string = "exponential"
+  ): number {
+    let delay: number;
+
+    switch (strategy) {
+      case "linear":
+        // Linear backoff: baseDelay * (attempt + 1)
+        delay = baseDelay * (attemptNumber + 1);
+        break;
+      case "fixed":
+        // Fixed delay
+        delay = baseDelay;
+        break;
+      case "exponential":
+      default:
+        // Exponential backoff: baseDelay * 2^attempt
+        delay = baseDelay * Math.pow(2, attemptNumber);
+        break;
+    }
+
+    // Cap at maxDelay
+    return Math.min(delay, maxDelay);
   }
 
   private sleep(ms: number): Promise<void> {
@@ -120,7 +172,8 @@ export class WebhookDeliveryService {
   }
 }
 
-// TODO: This will be replaced with a proper job queue (Bull/BullMQ)
+// Legacy WebhookProcessor class (replaced by QueueConsumer)
+// This class is kept for backward compatibility and manual testing only
 export class WebhookProcessor {
   private deliveryService: WebhookDeliveryService;
 
@@ -133,7 +186,7 @@ export class WebhookProcessor {
       `📝 Processing webhook: ${webhookPayload.id} for user: ${webhookPayload.userId}`
     );
 
-    // TODO: Look up user's webhook URLs from database
+    // Get user's webhook URL (fallback to basic lookup for legacy support)
     const userWebhookUrl = await this.getUserWebhookUrl(
       webhookPayload.userId,
       webhookPayload.environment
@@ -146,13 +199,12 @@ export class WebhookProcessor {
       return;
     }
 
-    // Deliver the webhook with retries
+    // Deliver the webhook with retries using default settings
     const attempts = await this.deliveryService.deliverWithRetries(
       webhookPayload,
       userWebhookUrl
     );
 
-    // TODO: Store delivery attempts in database
     console.log(`📊 Delivery complete. Total attempts: ${attempts.length}`);
 
     return attempts;
@@ -162,8 +214,7 @@ export class WebhookProcessor {
     userId: string,
     environment: string
   ): Promise<string | null> {
-    // TODO: Implement database lookup
-    // For now, return a mock URL for testing
+    // Basic fallback URL logic for legacy compatibility
     if (environment === "dev") {
       return `http://localhost:3000/webhooks/mpesa`;
     }
@@ -177,6 +228,35 @@ export class WebhookProcessor {
 
 // Example usage (for testing)
 if (import.meta.main) {
+  console.log("🚀 Starting Webhook Delivery Worker...");
+
+  try {
+    console.log("📡 Creating queue consumer...");
+    // Start the queue consumer
+    const queueConsumer = new QueueConsumer();
+    console.log("✅ Queue consumer created successfully!");
+
+    // Handle graceful shutdown
+    process.on("SIGINT", async () => {
+      console.log("🛑 Received SIGINT, shutting down gracefully...");
+      await queueConsumer.shutdown();
+      process.exit(0);
+    });
+
+    process.on("SIGTERM", async () => {
+      console.log("🛑 Received SIGTERM, shutting down gracefully...");
+      await queueConsumer.shutdown();
+      process.exit(0);
+    });
+
+    console.log("🎯 Worker is running and listening for jobs...");
+  } catch (error) {
+    console.error("💥 Failed to start worker:", error);
+    process.exit(1);
+  }
+
+  // mock test code for manual testing
+  /*
   const processor = new WebhookProcessor();
 
   // Mock webhook payload for testing
@@ -200,4 +280,5 @@ if (import.meta.main) {
 
   console.log("🧪 Testing webhook delivery...");
   processor.processWebhook(mockWebhook);
+  */
 }
