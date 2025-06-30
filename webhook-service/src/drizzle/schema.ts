@@ -22,6 +22,23 @@ export const users = pgTable("users", {
     .defaultNow()
     .$onUpdate(() => new Date()),
   lastLoginAt: timestamp("last_login_at"),
+import { pgTable, uuid, varchar, timestamp, boolean, text, jsonb, integer,pgEnum } from 'drizzle-orm/pg-core';
+
+//Enums
+export const roleEnum = pgEnum("user_type", ["user", "admin", "super_admin", "disabled"]);
+
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  phoneNumber: varchar('phone_number', { length: 20 }).notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  apiKey: varchar('api_key', { length: 64 }).unique(),
+  role: roleEnum("role").default("user"),// Role-based access control
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()),
+  lastLoginAt: timestamp('last_login_at'),
 });
 
 // User-specific retry and webhook configuration settings
@@ -98,6 +115,18 @@ export const retryHistory = pgTable("retry_history", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const environmentEnum = pgEnum("environment", ["development", "staging", "production"]);
+
+// Add user_settings table for per-user environment webhook URLs
+export const userSettings = pgTable('user_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  environment: environmentEnum('environment').notNull(),
+  webhookUrl: text('webhook_url').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()),
+});
+
 export type DeliveryAttempt = typeof deliveryAttempts.$inferSelect;
 export type NewDeliveryAttempt = typeof deliveryAttempts.$inferInsert;
 export type Webhook = typeof webhooks.$inferSelect;
@@ -108,3 +137,5 @@ export type UserRetrySettings = typeof userRetrySettings.$inferSelect;
 export type NewUserRetrySettings = typeof userRetrySettings.$inferInsert;
 export type RetryHistory = typeof retryHistory.$inferSelect;
 export type NewRetryHistory = typeof retryHistory.$inferInsert;
+export type UserSetting = typeof userSettings.$inferSelect;
+export type NewUserSetting = typeof userSettings.$inferInsert;

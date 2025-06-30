@@ -67,7 +67,7 @@ def set_endpoint(ctx: click.Context, environment: str, url: str) -> None:
         console.print("[red]❌ Not configured. Run 'daraja login' first.[/red]")
         return
     
-    # Validate URL format (basic)
+    # Validate URL format (basic), Obviously we will need more robust validation in production
     if not url.startswith(('http://', 'https://')):
         console.print("[red]❌ URL must start with http:// or https://[/red]")
         return

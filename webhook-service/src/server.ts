@@ -8,13 +8,21 @@ import userRetryRoutes from "./routes/userRetryRoutes";
 import { errorHandler, requestLogger } from "./middleware";
 import db from "./drizzle/db";
 import { sql } from "drizzle-orm";
+import authRouter from "./routes/auth.routes";
+import settingsRoutes from "./routes/settings.routes";
 
 const app = new Hono();
+
+app.use(cors({
+  origin: '*', //later set to specific origins in production or ip ranges
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Global middleware
 app.use("*", errorHandler);
 app.use("*", requestLogger);
-app.use("*", cors());
+// app.use("*", cors());
 app.use("*", logger());
 
 // Routes
@@ -22,12 +30,14 @@ app.route("/", webhookRoutes);
 app.route("/api/metrics", metricsRoutes);
 app.route("/api/dlq", dlqRoutes);
 app.route("/api", userRetryRoutes);
+app.route("/", authRouter);
+app.route("/", settingsRoutes);
 
 // Test database connection at startup
 (async () => {
   try {
     const result = await db.execute(sql`SELECT NOW()`);
-    console.log("✅ Database connection successful:", result);
+    console.log('✅ Database connection successful:',result);
   } catch (error) {
     console.error("❌ Database connection failed:", error);
   }

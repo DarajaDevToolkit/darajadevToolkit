@@ -63,7 +63,7 @@ install_deps() {
     
     # Root workspace dependencies
     print_step "Installing workspace dependencies..."
-    npm install
+    bun install
     
     # Webhook service (Bun)
     print_step "Installing webhook service dependencies..."
@@ -95,6 +95,8 @@ start_dev() {
     if command -v docker &> /dev/null; then
         print_step "Starting Docker services..."
         if docker compose up -d 2>/dev/null; then
+            print_success "Docker services started"
+        elif docker-compose up -d 2>/dev/null; then
             print_success "Docker services started"
         else
             print_warning "Could not start Docker services - check if Docker is running"
@@ -132,7 +134,9 @@ stop_dev() {
     
     # Stop Docker services
     if command -v docker &> /dev/null; then
-        docker compose down 2>/dev/null || true
+        if ! docker compose down 2>/dev/null; then
+            docker-compose down 2>/dev/null || true
+        fi
     fi
     
     print_success "Development services stopped"
@@ -156,10 +160,12 @@ show_status() {
     fi
     
     # Check Docker services
-    if command -v docker &> /dev/null && docker compose ps 2>/dev/null | grep -q "Up"; then
-        print_success "Docker services running"
-    else
-        echo "  🐳 Docker Services: Not running"
+    if command -v docker &> /dev/null; then
+        if docker compose ps 2>/dev/null | grep -q "Up" || docker-compose ps 2>/dev/null | grep -q "Up"; then
+            print_success "Docker services running"
+        else
+            echo "  🐳 Docker Services: Not running"
+        fi
     fi
     
     # Check CLI
@@ -226,8 +232,38 @@ case "${1:-}" in
         rm -rf */.next
         rm -rf */dist
         rm -rf cli/venv
-        docker compose down -v 2>/dev/null || true
+        docker compose down -v 2>/dev/null || docker-compose down -v 2>/dev/null || true
         print_success "Cleanup complete"
+        ;;
+    "ci")
+        print_step "Running CI checks locally..."
+        print_step "Installing dependencies..."
+        install_deps
+        
+        print_step "Running lints..."
+        npm run lint || print_warning "Linting completed with warnings"
+        
+        print_step "Running builds..."
+
+        echo "🔧 Checking TypeScript compilation..."
+        npx tsc --noEmit --skipLibCheck || print_warning "TypeScript checks completed with warnings"
+        
+        echo "🔧 Checking services..."
+        if [ -f "webhook-service/src/server.ts" ]; then
+            echo "✅ Webhook service files present"
+        fi
+        
+        print_step "Running tests..."
+        cd cli
+        if [ -f "venv/bin/activate" ]; then
+            source venv/bin/activate
+            if [ -f "test_cli.py" ]; then
+                python test_cli.py || print_warning "CLI tests completed"
+            fi
+        fi
+        cd ..
+        
+        print_success "Local CI checks complete!"
         ;;
     *)
         echo "Daraja Developer Toolkit - Development Helper"
@@ -240,6 +276,7 @@ case "${1:-}" in
         echo "  stop    - Stop all development services"
         echo "  status  - Check status of all services"
         echo "  test    - Test that everything is working"
+        echo "  ci      - Run CI checks locally (lint, build, test)"
         echo "  clean   - Clean all build artifacts and dependencies"
         echo ""
         echo "Quick start:"

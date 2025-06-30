@@ -159,3 +159,5 @@ webhook-service/node_modules/
 cli/venv/
 cli/dist/
 cli/build/
+
+./test.sh

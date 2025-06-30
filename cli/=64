@@ -1,6 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: setuptools in /usr/lib/python3/dist-packages (59.6.0)
-Collecting setuptools
-  Using cached setuptools-80.9.0-py3-none-any.whl (1.2 MB)
-Installing collected packages: setuptools
-Successfully installed setuptools-80.9.0

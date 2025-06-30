@@ -1,5 +1,6 @@
 {
   "id": "26082403-31aa-40ce-b47e-78b33d2e3812",
+  "id": "ba2d7ab6-40c3-4161-b7aa-c527abef9a50",
   "prevId": "c047699e-d456-4e65-bb80-f85068e8bbe1",
   "version": "7",
   "dialect": "postgresql",
@@ -33,7 +34,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "payload": {
           "name": "payload",
           "type": "jsonb",
           "primaryKey": false,
@@ -418,6 +418,13 @@
           "type": "varchar(64)",
           "primaryKey": false,
           "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'user'"
         },
         "is_active": {
           "name": "is_active",

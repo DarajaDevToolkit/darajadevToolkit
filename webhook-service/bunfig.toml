@@ -1,0 +1,7 @@
+[build]
+target = "bun"
+external = ["cloudflare:workers"]
+
+[install]
+optional = true
+dev = true
