@@ -10,7 +10,7 @@ name: CI
 #  since we are in active dev this is a better option
 on:
   push:
-    branches: ["**"] # Run on all branches
+    branches: ['**'] # Run on all branches
   pull_request:
     branches: [main, develop]
 
@@ -53,7 +53,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.10'
 
       - name: Install dependencies with Bun & Python
         run: |
@@ -152,7 +152,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.10'
       - name: Install dependencies
         run: |
           bun install --frozen-dependencies
@@ -192,28 +192,25 @@ jobs:
   #       run: |
   #         npx prettier --check . || exit 1
 
-  # build-and-push-docker:
-  #   runs-on: ubuntu-latest
-  #   needs: [test]
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Log in to Docker Hub
-  #       uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
-  #     - name: Build and push webhook-service
-  #       env:
-  #         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-  #       run: |
-  #         docker build -t $DOCKERHUB_USERNAME/darajadev-webhook-service:latest ./webhook-service
-  #         docker push $DOCKERHUB_USERNAME/darajadev-webhook-service:latest
-      # - name: Build and push dashboard
-      #   env:
-      #     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      #   run: |
-      #     docker build -f ./dashboard/Dockerfile -t $DOCKERHUB_USERNAME/darajadev-dashboard:latest .
-      #     docker push $DOCKERHUB_USERNAME/darajadev-dashboard:latest
+  build-and-push-docker:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Build and push webhook-service
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/darajadev-webhook-service:latest ./webhook-service
+          docker push ghcr.io/${{ github.repository_owner }}/darajadev-webhook-service:latest
+      - name: Build and push dashboard
+        run: |
+          docker build -f ./dashboard/Dockerfile -t ghcr.io/${{ github.repository_owner }}/darajadev-dashboard:latest .
+          docker push ghcr.io/${{ github.repository_owner }}/darajadev-dashboard:latest
 
   # trivy-scan:
   #   runs-on: ubuntu-latest
