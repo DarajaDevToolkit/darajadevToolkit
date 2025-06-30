@@ -10,3 +10,5 @@ build/
 dashboard/.next
 
 tsconfig.tsbuildinfo
+
+src/app/_oldpage.tsx
