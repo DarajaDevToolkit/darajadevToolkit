@@ -1,0 +1,102 @@
+{
+  "navigation": [
+    {
+      "id": "docs",
+      "label": "Docs",
+      "href": "/docs",
+      "type": "internal"
+    },
+    {
+      "id": "pricing",
+      "label": "Pricing",
+      "href": "/pricing",
+      "type": "internal"
+    },
+    {
+      "id": "api",
+      "label": "API",
+      "href": "/api-docs",
+      "type": "internal"
+    },
+    {
+      "id": "blog",
+      "label": "Blog",
+      "href": "/blog",
+      "type": "internal"
+    }
+  ],
+  "auth": [
+    {
+      "id": "login",
+      "label": "Login",
+      "href": "/login",
+      "type": "auth",
+      "variant": "secondary"
+    },
+    {
+      "id": "register",
+      "label": "Get Started",
+      "href": "/register",
+      "type": "auth",
+      "variant": "primary"
+    }
+  ],
+  "dashboard": [
+    {
+      "id": "dashboard",
+      "label": "Dashboard",
+      "href": "/dashboard",
+      "type": "internal"
+    },
+    {
+      "id": "webhooks",
+      "label": "Webhooks",
+      "href": "/webhooks",
+      "type": "internal"
+    },
+    {
+      "id": "analytics",
+      "label": "Analytics",
+      "href": "/analytics",
+      "type": "internal"
+    },
+    {
+      "id": "settings",
+      "label": "Settings",
+      "href": "/settings",
+      "type": "internal"
+    }
+  ],
+  "footer": [
+    {
+      "id": "about",
+      "label": "About",
+      "href": "/about",
+      "type": "internal"
+    },
+    {
+      "id": "contact",
+      "label": "Contact",
+      "href": "/contact",
+      "type": "internal"
+    },
+    {
+      "id": "privacy",
+      "label": "Privacy Policy",
+      "href": "/privacy",
+      "type": "internal"
+    },
+    {
+      "id": "terms",
+      "label": "Terms of Service",
+      "href": "/terms",
+      "type": "internal"
+    },
+    {
+      "id": "status",
+      "label": "System Status",
+      "href": "https://status.darajaproxy.com",
+      "type": "external"
+    }
+  ]
+}
