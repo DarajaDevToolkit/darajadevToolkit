@@ -195,6 +195,13 @@ jobs:
   build-and-push-docker:
     runs-on: ubuntu-latest
     needs: [test]
+    strategy:
+      matrix:
+        service:
+          - dashboard
+          - webhook-service
+          - cli
+          - delivery-worker
     steps:
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
@@ -247,7 +254,7 @@ jobs:
           echo "Building dashboard..."
 
           docker build -f ./dashboard/Dockerfile -t ghcr.io/${{
-          github.repository_owner }}/darajadev-dashboard:latest .
+          github.repository_owner }}/darajadev-dashboard:latest ./dashboard
 
           docker push ghcr.io/${{ github.repository_owner
           }}/darajadev-dashboard:latest
@@ -265,12 +272,11 @@ jobs:
         run: >
           echo "Building delivery-worker..."
 
-          docker build -f ./delivery-worker/Dockerfile -t ghcr.io/${{
-          github.repository_owner }}/darajadev-delivery-worker:latest
-          ./delivery-worker
+          docker build -f ./delivery-worker/Dockerfile \
+            -t ghcr.io/${{ github.repository_owner }}/darajadev-delivery-worker:latest ./delivery-worker
 
-          docker push ghcr.io/${{ github.repository_owner
-          }}/darajadev-delivery-worker:latest
+          docker push ghcr.io/${{ github.repository_owner }}/darajadev-delivery-worker:latest
+
 
   # trivy-scan:
   #   runs-on: ubuntu-latest

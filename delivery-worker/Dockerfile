@@ -1,27 +1,23 @@
-# Stage 1: Build
+# Stage 1: Builder
 FROM node:20-slim AS builder
 WORKDIR /app
 
-# Install dependencies
-COPY package.json package-lock.json ./
-RUN npm ci
-
-# Copy source code
+# Copy entire monorepo (or use .dockerignore to trim)
 COPY . .
 
-# Build TypeScript code
-RUN npm run build
+# Install all dependencies across workspaces
+RUN npm install
 
-# Stage 2: Runtime
+# Build this specific workspace
+RUN npm run --workspace=delivery-worker build
+
+# Stage 2: Runtime image
 FROM node:20-slim
 WORKDIR /app
 
-# Only install production dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+COPY . .
 
-# Copy built output from builder stage
-COPY --from=builder /app/dist ./dist
+RUN npm install --workspace=delivery-worker --omit=dev
 
-# Run the compiled worker
+WORKDIR /app/delivery-worker
 CMD ["node", "dist/worker.js"]
