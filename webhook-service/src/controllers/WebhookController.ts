@@ -73,6 +73,7 @@ export class WebhookController {
       console.error(`[${userId}] Error processing webhook:`, error);
 
       // Always return success to M-Pesa to avoid retries
+      // We will only retry failed jobs later
       return c.json({
         ResultCode: 0,
         ResultDesc: "Accepted",
