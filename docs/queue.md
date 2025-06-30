@@ -51,9 +51,20 @@ M-Pesa Webhooks → Webhook Service → Redis Queue → Delivery Worker → User
 
 ### ✅ **Automatic Retries**
 
-- **3 attempts** for failed deliveries
-- **Exponential backoff**: 2s → 4s → 8s delays
+- **3 attempts** for failed deliveries (configurable per user)
+- **Exponential backoff**: 2s → 4s → 8s delays (intelligent per error type)
 - **Dead letter queue** for permanently failed jobs
+- **Error categorization**: Network, timeout, 4xx, 5xx, rate limit, authentication
+- **Smart retry logic**: Different strategies per error type
+- **Manual retry**: Retry failed jobs from DLQ via API
+
+### ✅ **Dead Letter Queue (DLQ)**
+
+- **Separate queue** for jobs that failed all retry attempts
+- **Failure analysis**: Track error patterns and categories
+- **Manual management**: View, retry, and clear failed jobs
+- **DLQ health monitoring**: Alerts when DLQ size grows
+- **Bulk operations**: Retry multiple jobs at once
 
 ### ✅ **Fault Tolerance**
 
