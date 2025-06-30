@@ -1,14 +1,70 @@
 import { Worker, Job } from "bullmq";
 import type { WebhookPayload } from "@daraja-toolkit/shared";
 import { WebhookDeliveryService } from "../worker";
+import type { UserRetrySettingsAPI } from "../worker";
 
-// Queue configuration (should match webhook-service config)
+// Webhook service API client
+class WebhookServiceClient {
+  private baseUrl: string;
+
+  constructor(baseUrl: string = "http://localhost:3001") {
+    this.baseUrl = baseUrl;
+  }
+
+  async getUserWebhookUrl(
+    userId: string,
+    environment: string = "dev"
+  ): Promise<string | null> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/api/user/${userId}/webhook-url/${environment}`
+      );
+      if (!response.ok) {
+        console.warn(
+          `Failed to get webhook URL for user ${userId}: ${response.statusText}`
+        );
+        return null;
+      }
+
+      const data = await response.json();
+      return data.success ? data.data.webhookUrl : null;
+    } catch (error) {
+      console.error(`Error fetching webhook URL for user ${userId}:`, error);
+      return null;
+    }
+  }
+
+  async getUserRetrySettings(
+    userId: string,
+    environment: string = "dev"
+  ): Promise<UserRetrySettingsAPI | null> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/api/user/${userId}/retry-settings/${environment}`
+      );
+      if (!response.ok) {
+        console.warn(
+          `Failed to get retry settings for user ${userId}: ${response.statusText}`
+        );
+        return null;
+      }
+
+      const data = await response.json();
+      return data.success ? data.data : null;
+    } catch (error) {
+      console.error(`Error fetching retry settings for user ${userId}:`, error);
+      return null;
+    }
+  }
+}
+
+// Queue configuration (should match webhook-service config). If you are curious why I redefined is because BullMq requires that maxRetriesPerRequest for Workers, which is not the default in the shared config.
 const redisConnection = {
   host: process.env.REDIS_HOST || "localhost",
   port: parseInt(process.env.REDIS_PORT || "6379"),
   password: process.env.REDIS_PASSWORD,
   db: parseInt(process.env.REDIS_DB || "0"),
-  maxRetriesPerRequest: null, // Required for Workers according to BullMQ docs
+  maxRetriesPerRequest: null, // This here
 };
 
 const QUEUE_NAMES = {
@@ -26,13 +82,15 @@ interface WebhookDeliveryJobData {
 export class QueueConsumer {
   private worker: Worker;
   private deliveryService: WebhookDeliveryService;
+  private webhookServiceClient: WebhookServiceClient;
 
   constructor() {
     console.log("🔧 Initializing QueueConsumer...");
     console.log("🔧 Redis config:", redisConnection);
 
     this.deliveryService = new WebhookDeliveryService();
-    console.log("🔧 WebhookDeliveryService created");
+    this.webhookServiceClient = new WebhookServiceClient();
+    console.log("🔧 WebhookDeliveryService and API client created");
 
     // Create BullMQ worker
     this.worker = new Worker(
@@ -56,21 +114,38 @@ export class QueueConsumer {
     console.log(`🔄 Processing job ${job.id}:`, job.data.eventType);
 
     const { webhookPayload, userId } = job.data;
+    const userIdToUse = userId || webhookPayload.userId || "";
+    const environment = webhookPayload.environment || "dev";
 
     // Look up user's webhook URL
-    const targetUrl = await this.getUserWebhookUrl(
-      userId || webhookPayload.userId || "",
-      webhookPayload.environment || "dev"
-    );
+    const targetUrl = await this.getUserWebhookUrl(userIdToUse, environment);
 
     if (!targetUrl) {
-      throw new Error(`No webhook URL configured for user ${userId}`);
+      throw new Error(`No webhook URL configured for user ${userIdToUse}`);
+    }
+
+    // Fetch user-specific retry settings
+    const userRetrySettings =
+      await this.webhookServiceClient.getUserRetrySettings(
+        userIdToUse,
+        environment
+      );
+
+    if (userRetrySettings) {
+      console.log(`⚙️  Using custom retry settings for user ${userIdToUse}:`, {
+        maxRetries: userRetrySettings.maxRetries,
+        initialDelay: userRetrySettings.initialDelayMs,
+        maxDelay: userRetrySettings.maxDelayMs,
+        backoffStrategy: userRetrySettings.backoffStrategy,
+      });
+    } else {
+      console.log(`⚙️  Using default retry settings for user ${userIdToUse}`);
     }
 
     // Create full webhook payload for delivery
     const fullWebhookPayload: WebhookPayload = {
       id: webhookPayload.id || `webhook_${Date.now()}`,
-      userId: userId || webhookPayload.userId || "",
+      userId: userIdToUse,
       eventType: webhookPayload.eventType || "stk_push_result",
       payload: webhookPayload.payload as any, // Type assertion for now
       receivedAt:
@@ -79,13 +154,14 @@ export class QueueConsumer {
           : webhookPayload.receivedAt
             ? new Date(webhookPayload.receivedAt as string | number)
             : new Date(),
-      environment: webhookPayload.environment || "dev",
+      environment: environment,
     };
 
-    // Deliver the webhook with retries
+    // Deliver the webhook with retries (using user settings if available)
     const attempts = await this.deliveryService.deliverWithRetries(
       fullWebhookPayload,
-      targetUrl
+      targetUrl,
+      userRetrySettings || undefined // Pass user settings or undefined for defaults
     );
 
     console.log(
@@ -100,20 +176,56 @@ export class QueueConsumer {
   }
 
   /**
-   * Get user's webhook URL from database
+   * Get user's webhook URL from the webhook service API
    */
   private async getUserWebhookUrl(
     userId: string,
     environment: string
   ): Promise<string | null> {
-    // TODO: Implement database lookup
-    // For now, return a test URL that actually works
+    // Use the API client to fetch webhook URL from the webhook service
+    const webhookUrl = await this.webhookServiceClient.getUserWebhookUrl(
+      userId,
+      environment
+    );
+
+    if (webhookUrl) {
+      console.log(
+        `📡 Retrieved webhook URL for user ${userId} in ${environment}: ${webhookUrl}`
+      );
+      return webhookUrl;
+    }
+
+    // Fallback to test URLs for specific test patterns (for testing/development)
     if (environment === "dev") {
-      return `http://localhost:3002/webhooks/mpesa`;
+      // Check if this is a test user that should get different URLs for testing
+      if (userId.includes("test_user_dlq") || userId.includes("timeout")) {
+        const testUrl = `http://httpstat.us/500?sleep=30000`; // Timeout URL for testing
+        console.log(`🧪 Using test timeout URL for ${userId}: ${testUrl}`);
+        return testUrl;
+      }
+
+      if (userId.includes("client_error")) {
+        const testUrl = `http://httpstat.us/400`; // Client error for testing
+        console.log(`🧪 Using test client error URL for ${userId}: ${testUrl}`);
+        return testUrl;
+      }
+
+      if (userId.includes("server_error")) {
+        const testUrl = `http://httpstat.us/500`; // Server error for testing
+        console.log(`🧪 Using test server error URL for ${userId}: ${testUrl}`);
+        return testUrl;
+      }
+
+      // Default working URL for dev (fallback)
+      const fallbackUrl = `http://localhost:3002/webhooks/mpesa`;
+      console.log(
+        `🔄 Using fallback webhook URL for ${userId}: ${fallbackUrl}`
+      );
+      return fallbackUrl;
     }
 
     console.warn(
-      `No webhook URL configured for user ${userId} in ${environment}`
+      `⚠️  No webhook URL configured for user ${userId} in ${environment}`
     );
     return null;
   }
