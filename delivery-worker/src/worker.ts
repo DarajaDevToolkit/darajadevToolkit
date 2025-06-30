@@ -255,7 +255,7 @@ if (import.meta.main) {
     process.exit(1);
   }
 
-  // Keep the old test code for manual testing (commented out)
+  // mock test code for manual testing
   /*
   const processor = new WebhookProcessor();
 

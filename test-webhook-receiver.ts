@@ -1,4 +1,3 @@
-// Simple test webhook receiver
 import { serve } from "bun";
 
 const server = serve({

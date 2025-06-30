@@ -1,4 +1,4 @@
-// Just a imple test to check BullMQ connection
+// Just a simple test to check BullMQ connection
 import { Worker } from "bullmq";
 
 console.log("🧪 Testing BullMQ connection...");

@@ -1,4 +1,3 @@
-// Test script for Dead Letter Queue functionality
 import { EnhancedWebhookDeliveryService } from "./src/services/EnhancedWebhookDeliveryService";
 import type { WebhookPayload } from "@daraja-toolkit/shared";
 
