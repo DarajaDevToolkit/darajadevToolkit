@@ -4,16 +4,17 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/worker.ts",
-    "build": "tsc",
-    "start": "node dist/worker.js"
+    "dev": "bun run --watch src/worker.ts",
+    "build": "bun build src/worker.ts --outdir ./dist",
+    "start": "bun run src/worker.ts"
   },
   "dependencies": {
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "bullmq": "^5.56.0"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^22",
-    "tsx": "^4.0.0"
+    "tsx": "^4.0.0",
+    "typescript": "^5"
   }
 }

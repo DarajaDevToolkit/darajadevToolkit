@@ -8,12 +8,13 @@
     "build": "bun build src/server.ts --outdir ./dist --target bun",
     "start": "bun run src/server.ts",
     "generate": "drizzle-kit generate",
-    "migrate": " tsx src/drizzle/migrate.ts",
+    "migrate": "bun run src/drizzle/migrate.ts",
     "studio": "drizzle-kit studio",
-    "push": " drizzle-kit generate && tsx src/drizzle/migrate.ts",
-    "seed": "tsx src/drizzle/seed.ts"
+    "push": "drizzle-kit generate && bun run src/drizzle/migrate.ts",
+    "seed": "bun run src/drizzle/seed.ts"
   },
   "dependencies": {
+    "bullmq": "^5.56.0",
     "bcryptjs": "^3.0.2",
     "dotenv": "^16.5.0",
     "drizzle-kit": "^0.31.1",

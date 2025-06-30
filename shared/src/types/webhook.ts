@@ -74,3 +74,17 @@ export interface DeliveryAttempt {
   attemptedAt: Date;
   errorMessage?: string;
 }
+
+// Queue-related webhook processing
+export interface WebhookQueueMetadata {
+  queuedAt: Date;
+  priority: "low" | "normal" | "high" | "urgent";
+  jobId?: string | number;
+  retryCount: number;
+  maxRetries: number;
+}
+
+// Extended webhook payload with queue metadata
+export interface QueuedWebhookPayload extends WebhookPayload {
+  queueMetadata: WebhookQueueMetadata;
+}
