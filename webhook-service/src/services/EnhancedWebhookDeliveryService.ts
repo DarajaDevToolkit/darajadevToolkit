@@ -1,8 +1,10 @@
 import axios, { AxiosError } from "axios";
 import type { WebhookPayload, DeliveryAttempt } from "@daraja-toolkit/shared";
 import { DeadLetterQueueService } from "./DeadLetterQueueService";
+import { UserRetrySettingsService } from "./UserRetrySettingsService";
 import { ERROR_CATEGORIES, RETRY_STRATEGIES } from "../config/queue";
 import type { DLQJobData } from "./DeadLetterQueueService";
+import type { UserRetrySettings as DBUserRetrySettings } from "../drizzle/schema";
 
 // Enhanced delivery attempt with error categorization
 export interface EnhancedDeliveryAttempt extends DeliveryAttempt {
@@ -12,7 +14,7 @@ export interface EnhancedDeliveryAttempt extends DeliveryAttempt {
   responseHeaders?: Record<string, string>;
 }
 
-// User retry settings interface
+// User retry settings interface (legacy compatibility)
 export interface UserRetrySettings {
   maxRetries: number;
   retryDelayMs: number;
@@ -21,14 +23,20 @@ export interface UserRetrySettings {
 
 export class EnhancedWebhookDeliveryService {
   private dlqService: DeadLetterQueueService;
+  private userSettingsService: UserRetrySettingsService;
   private defaultRetrySettings: UserRetrySettings = {
     maxRetries: 3,
     retryDelayMs: 1000,
     timeoutMs: 25000,
   };
 
-  constructor(dlqService?: DeadLetterQueueService) {
+  constructor(
+    dlqService?: DeadLetterQueueService,
+    userSettingsService?: UserRetrySettingsService
+  ) {
     this.dlqService = dlqService || new DeadLetterQueueService();
+    this.userSettingsService =
+      userSettingsService || new UserRetrySettingsService();
   }
 
   /**
@@ -396,6 +404,118 @@ export class EnhancedWebhookDeliveryService {
       return {
         valid: false,
         error: this.extractErrorMessage(error),
+      };
+    }
+  }
+
+  /**
+   * Deliver webhook with user-specific database settings
+   */
+  async deliverWebhookWithUserSettings(
+    webhookPayload: WebhookPayload,
+    userId: string,
+    environment: string = "dev",
+    queueJobId?: string
+  ): Promise<{
+    attempts: EnhancedDeliveryAttempt[];
+    finalStatus: "delivered" | "failed" | "moved_to_dlq";
+    dlqJobId?: string;
+  }> {
+    console.log(
+      `🚀 Starting webhook delivery with user settings for ${userId} in ${environment}`
+    );
+
+    try {
+      // Get user-specific retry settings from database
+      const dbUserSettings =
+        await this.userSettingsService.getUserRetrySettings(
+          userId,
+          environment
+        );
+
+      // Get user's webhook URL from database
+      const targetUrl = await this.userSettingsService.getUserWebhookUrl(
+        userId,
+        environment,
+        webhookPayload.eventType
+      );
+
+      if (!targetUrl) {
+        throw new Error(
+          `No webhook URL configured for user ${userId} in ${environment}`
+        );
+      }
+
+      console.log(
+        `📋 Using user settings: maxRetries=${dbUserSettings.maxRetries}, timeout=${dbUserSettings.timeoutMs}ms`
+      );
+      console.log(`🎯 Target URL: ${targetUrl}`);
+
+      // Convert database settings to legacy format
+      const userRetrySettings: UserRetrySettings = {
+        maxRetries: dbUserSettings.maxRetries,
+        retryDelayMs: dbUserSettings.retryDelayMs,
+        timeoutMs: dbUserSettings.timeoutMs,
+      };
+
+      // Use existing delivery logic with database-backed settings
+      const result = await this.deliverWebhookWithRetries(
+        webhookPayload,
+        targetUrl,
+        userRetrySettings
+      );
+
+      // Save all delivery attempts to database
+      for (let i = 0; i < result.attempts.length; i++) {
+        const attempt = result.attempts[i];
+        await this.userSettingsService.saveDeliveryAttempt(
+          { ...attempt, attemptNumber: i + 1 } as any,
+          userId,
+          queueJobId
+        );
+      }
+
+      // Save retry history to database
+      await this.userSettingsService.saveRetryHistory(
+        webhookPayload.id,
+        userId,
+        queueJobId || `job_${Date.now()}`,
+        result.attempts,
+        result.finalStatus,
+        result.dlqJobId
+      );
+
+      console.log(
+        `📊 Delivery complete: ${result.finalStatus} after ${result.attempts.length} attempts`
+      );
+
+      return result;
+    } catch (error: any) {
+      console.error(`❌ Failed to deliver webhook for user ${userId}:`, error);
+
+      // Create a failed attempt record for database tracking
+      const failedAttempt: EnhancedDeliveryAttempt = {
+        id: this.generateId(),
+        webhookId: webhookPayload.id,
+        targetUrl: "unknown",
+        status: "failed",
+        attemptedAt: new Date(),
+        errorMessage: error.message,
+        duration: 0,
+        errorCategory: ERROR_CATEGORIES.UNKNOWN,
+        retryable: false,
+      };
+
+      // Save failed attempt to database
+      await this.userSettingsService.saveDeliveryAttempt(
+        failedAttempt,
+        userId,
+        queueJobId
+      );
+
+      return {
+        attempts: [failedAttempt],
+        finalStatus: "failed",
       };
     }
   }

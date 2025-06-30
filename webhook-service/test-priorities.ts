@@ -1,4 +1,3 @@
-// Test script for priority handling
 import { WebhookQueueService } from "./src/services/WebhookQueueService";
 import { PRIORITY_LEVELS } from "./src/config/queue";
 

@@ -276,4 +276,11 @@ export class WebhookQueueService {
     await this.queueEvents.close();
     await this.webhookQueue.close();
   }
+
+  /**
+   * Get the webhook queue instance (for subclasses)
+   */
+  protected getWebhookQueue(): Queue {
+    return this.webhookQueue;
+  }
 }

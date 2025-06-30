@@ -4,6 +4,7 @@ import { logger } from "hono/logger";
 import { webhookRoutes } from "./routes/webhookRoutes";
 import { metricsRoutes } from "./routes/metricsRoutes";
 import { dlqRoutes } from "./routes/dlqRoutes";
+import userRetryRoutes from "./routes/userRetryRoutes";
 import { errorHandler, requestLogger } from "./middleware";
 import db from "./drizzle/db";
 import { sql } from "drizzle-orm";
@@ -20,6 +21,7 @@ app.use("*", logger());
 app.route("/", webhookRoutes);
 app.route("/api/metrics", metricsRoutes);
 app.route("/api/dlq", dlqRoutes);
+app.route("/api", userRetryRoutes);
 
 // Test database connection at startup
 (async () => {
@@ -48,3 +50,16 @@ console.log(`📈 Queue stats: http://localhost:${port}/api/metrics/queue/stats`
 console.log(`👥 Worker health: http://localhost:${port}/api/metrics/workers`);
 console.log(`💀 DLQ stats: http://localhost:${port}/api/dlq/stats`);
 console.log(`🔄 DLQ management: http://localhost:${port}/api/dlq/jobs`);
+console.log(
+  `👤 User retry settings: http://localhost:${port}/api/user/{userId}/retry-settings/{env}`
+);
+console.log(
+  `📊 User delivery stats: http://localhost:${port}/api/user/{userId}/delivery-stats`
+);
+console.log(
+  `🧪 Create test user: http://localhost:${port}/api/user/test/create`
+);
+console.log(
+  `📦 Queue with user settings: http://localhost:${port}/api/user/{userId}/webhook/queue`
+);
+console.log(`🔁 User retry: http://localhost:${port}/api/retry/{userId}`);

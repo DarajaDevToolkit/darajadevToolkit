@@ -1,4 +1,3 @@
-// Priority test script
 import { WebhookQueueService } from "./src/services/WebhookQueueService";
 import { PRIORITY_LEVELS } from "./src/config/queue";
 
@@ -7,9 +6,6 @@ async function testPriorities() {
 
   const queueService = new WebhookQueueService();
   const timestamp = Date.now();
-
-  // Add jobs in LOW → HIGH → URGENT order
-  // But they should be processed in URGENT → HIGH → LOW order
 
   console.log("\n📋 Adding jobs in this order: LOW → HIGH → URGENT");
 
