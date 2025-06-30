@@ -1,0 +1,44 @@
+[
+  {
+    "id": "webhook-reliability",
+    "icon": "Shield",
+    "title": "Never Lose Webhooks",
+    "description": "Bulletproof proxy ensures M-Pesa callbacks always reach your app",
+    "category": "reliability"
+  },
+  {
+    "id": "environment-routing",
+    "icon": "ArrowRight",
+    "title": "Environment Routing",
+    "description": "Switch between dev, staging, and production with one click",
+    "category": "development"
+  },
+  {
+    "id": "intelligent-retries",
+    "icon": "Clock",
+    "title": "Intelligent Retries",
+    "description": "Automatic retry logic with exponential backoff for failed deliveries",
+    "category": "reliability"
+  },
+  {
+    "id": "developer-friendly",
+    "icon": "Code",
+    "title": "Developer-Friendly",
+    "description": "Simple SDK integration and CLI tools built for Kenyan developers",
+    "category": "development"
+  },
+  {
+    "id": "real-time-monitoring",
+    "icon": "Activity",
+    "title": "Real-time Monitoring",
+    "description": "Live dashboard to monitor webhook delivery status and performance",
+    "category": "monitoring"
+  },
+  {
+    "id": "secure-endpoints",
+    "icon": "Lock",
+    "title": "Secure Endpoints",
+    "description": "HTTPS-only endpoints with request signing and validation",
+    "category": "security"
+  }
+]
