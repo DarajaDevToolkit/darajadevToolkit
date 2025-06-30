@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { webhookRoutes } from "./routes/webhookRoutes";
 import { metricsRoutes } from "./routes/metricsRoutes";
+import { dlqRoutes } from "./routes/dlqRoutes";
 import { errorHandler, requestLogger } from "./middleware";
 import db from "./drizzle/db";
 import { sql } from "drizzle-orm";
@@ -18,6 +19,7 @@ app.use("*", logger());
 // Routes
 app.route("/", webhookRoutes);
 app.route("/api/metrics", metricsRoutes);
+app.route("/api/dlq", dlqRoutes);
 
 // Test database connection at startup
 (async () => {
@@ -44,3 +46,5 @@ console.log(`🧪 Test endpoint: http://localhost:${port}/test/{userId}`);
 console.log(`📊 Metrics endpoint: http://localhost:${port}/api/metrics`);
 console.log(`📈 Queue stats: http://localhost:${port}/api/metrics/queue/stats`);
 console.log(`👥 Worker health: http://localhost:${port}/api/metrics/workers`);
+console.log(`💀 DLQ stats: http://localhost:${port}/api/dlq/stats`);
+console.log(`🔄 DLQ management: http://localhost:${port}/api/dlq/jobs`);
