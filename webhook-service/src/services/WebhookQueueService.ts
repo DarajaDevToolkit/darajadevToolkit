@@ -1,4 +1,4 @@
-import { Queue } from "bullmq";
+import { Queue, QueueEvents } from "bullmq";
 import type { WebhookPayload } from "@daraja-toolkit/shared";
 import {
   redisConnection,
@@ -6,17 +6,29 @@ import {
   JOB_TYPES,
   DEFAULT_JOB_OPTIONS,
   PRIORITY_LEVELS,
+  QUEUE_CONFIG,
 } from "../config/queue";
 
 export class WebhookQueueService {
   private webhookQueue: Queue;
+  private queueEvents: QueueEvents;
 
   constructor() {
-    // Initialize the webhook delivery queue
+    // Initialize the webhook delivery queue with advanced configuration
     this.webhookQueue = new Queue(QUEUE_NAMES.WEBHOOK_DELIVERY, {
       connection: redisConnection,
-      defaultJobOptions: DEFAULT_JOB_OPTIONS,
+      defaultJobOptions: {
+        ...DEFAULT_JOB_OPTIONS,
+      },
     });
+
+    // Initialize queue events for monitoring
+    this.queueEvents = new QueueEvents(QUEUE_NAMES.WEBHOOK_DELIVERY, {
+      connection: redisConnection,
+    });
+
+    // Set up queue event listeners for better monitoring
+    this.setupQueueEventListeners();
   }
 
   /**
@@ -160,5 +172,108 @@ export class WebhookQueueService {
         },
       };
     }
+  }
+
+  /**
+   * Set up queue event listeners for monitoring
+   */
+  private setupQueueEventListeners(): void {
+    console.log("🔧 Setting up queue event listeners...");
+
+    this.queueEvents.on("completed", ({ jobId }) => {
+      console.log(`✅ Webhook job ${jobId} completed successfully`);
+    });
+
+    this.queueEvents.on("failed", ({ jobId, failedReason }) => {
+      console.error(`❌ Webhook job ${jobId} failed:`, failedReason);
+    });
+
+    this.queueEvents.on("stalled", ({ jobId }) => {
+      console.warn(`⚠️  Webhook job ${jobId} stalled`);
+    });
+
+    this.queueEvents.on("progress", ({ jobId, data }) => {
+      console.log(`🔄 Webhook job ${jobId} progress: ${data}%`);
+    });
+
+    this.queueEvents.on("waiting", ({ jobId }) => {
+      console.log(`⏳ Webhook job ${jobId} is waiting`);
+    });
+
+    this.queueEvents.on("active", ({ jobId }) => {
+      console.log(`🚀 Webhook job ${jobId} is active`);
+    });
+
+    this.queueEvents.on("removed", ({ jobId }) => {
+      console.log(`🗑️  Webhook job ${jobId} was removed`);
+    });
+
+    this.queueEvents.on("error", (err) => {
+      console.error("🚨 Queue error:", err);
+    });
+
+    console.log("✅ Queue event listeners set up successfully");
+  }
+
+  /**
+   * Add advanced job options with deduplication
+   */
+  async queueWebhookWithOptions(
+    webhookPayload: Partial<WebhookPayload>,
+    options: {
+      priority?: number;
+      delay?: number;
+      attempts?: number;
+      deduplicationKey?: string;
+      timeout?: number;
+    } = {}
+  ): Promise<void> {
+    const priorityName = this.getPriorityName(
+      options.priority || PRIORITY_LEVELS.NORMAL
+    );
+
+    console.log(
+      `📦 Queuing webhook with advanced options (${priorityName}):`,
+      webhookPayload.eventType,
+      "for user:",
+      webhookPayload.userId
+    );
+
+    // Create job options with deduplication
+    const jobOptions = {
+      priority: options.priority || PRIORITY_LEVELS.NORMAL,
+      attempts: options.attempts || 3,
+      delay: options.delay || 0,
+      timeout: options.timeout || QUEUE_CONFIG.capacity.maxConcurrency * 1000,
+      // Add deduplication if key provided
+      ...(options.deduplicationKey && {
+        jobId: `webhook_${options.deduplicationKey}`,
+      }),
+    };
+
+    // Add job to the queue
+    const job = await this.webhookQueue.add(
+      JOB_TYPES.DELIVER_WEBHOOK,
+      {
+        webhookPayload,
+        targetUrl: "", // Will be looked up by the worker
+        userId: webhookPayload.userId,
+        eventType: webhookPayload.eventType,
+      },
+      jobOptions
+    );
+
+    console.log(
+      `✅ Webhook queued with job ID: ${job.id} (Priority: ${priorityName})`
+    );
+  }
+
+  /**
+   * Cleanup resources
+   */
+  async cleanup(): Promise<void> {
+    console.log("🛑 Cleaning up WebhookQueueService...");
+    await this.queueEvents.close();
+    await this.webhookQueue.close();
   }
 }

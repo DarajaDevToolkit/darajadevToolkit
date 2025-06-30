@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { webhookRoutes } from "./routes/webhookRoutes";
+import { metricsRoutes } from "./routes/metricsRoutes";
 import { errorHandler, requestLogger } from "./middleware";
 import db from "./drizzle/db";
 import { sql } from "drizzle-orm";
@@ -16,14 +17,15 @@ app.use("*", logger());
 
 // Routes
 app.route("/", webhookRoutes);
+app.route("/api/metrics", metricsRoutes);
 
 // Test database connection at startup
 (async () => {
   try {
     const result = await db.execute(sql`SELECT NOW()`);
-    console.log('✅ Database connection successful:', result);
+    console.log("✅ Database connection successful:", result);
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    console.error("❌ Database connection failed:", error);
   }
 })();
 
@@ -39,3 +41,6 @@ console.log(`🚀 Webhook service running on port ${port}`);
 console.log(`📍 Health check: http://localhost:${port}/health`);
 console.log(`📨 Webhook endpoint: http://localhost:${port}/webhook/{userId}`);
 console.log(`🧪 Test endpoint: http://localhost:${port}/test/{userId}`);
+console.log(`📊 Metrics endpoint: http://localhost:${port}/api/metrics`);
+console.log(`📈 Queue stats: http://localhost:${port}/api/metrics/queue/stats`);
+console.log(`👥 Worker health: http://localhost:${port}/api/metrics/workers`);
