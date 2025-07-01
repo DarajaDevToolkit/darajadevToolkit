@@ -6,6 +6,7 @@ import { metricsRoutes } from "./routes/metricsRoutes";
 import { dlqRoutes } from "./routes/dlqRoutes";
 import userRetryRoutes from "./routes/userRetryRoutes";
 import { errorHandler, requestLogger } from "./middleware";
+import { ipValidator } from "./middleware/ipValidator";
 import db from "./drizzle/db";
 import { sql } from "drizzle-orm";
 import authRouter from "./routes/auth.routes";
@@ -23,6 +24,7 @@ app.use(cors({
 app.use("*", errorHandler);
 app.use("*", requestLogger);
 // app.use("*", cors());
+app.use("*", ipValidator);
 app.use("*", logger());
 
 // Routes
