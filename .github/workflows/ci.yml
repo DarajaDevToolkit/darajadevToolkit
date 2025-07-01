@@ -227,7 +227,7 @@ jobs:
           - webhook-service
           - cli
           - delivery-worker
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/CI/CD-Pipeline'
     steps:
       - uses: actions/checkout@v4
 
