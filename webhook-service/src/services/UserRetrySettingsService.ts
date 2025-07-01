@@ -1,5 +1,5 @@
-import { eq, and } from "drizzle-orm";
-import db from "../drizzle/db";
+import { eq, and } from 'drizzle-orm';
+import db from '../drizzle/db';
 import {
   userRetrySettings,
   deliveryAttempts,
@@ -10,15 +10,15 @@ import {
   type NewUserRetrySettings,
   type NewDeliveryAttempt,
   type NewRetryHistory,
-} from "../drizzle/schema";
-import type { EnhancedDeliveryAttempt } from "./EnhancedWebhookDeliveryService";
+} from '../drizzle/schema';
+import type { EnhancedDeliveryAttempt } from './EnhancedWebhookDeliveryService';
 
 // Default retry settings if user hasn't configured any
 const DEFAULT_RETRY_SETTINGS: Omit<
   UserRetrySettings,
-  "id" | "userId" | "createdAt" | "updatedAt"
+  'id' | 'userId' | 'createdAt' | 'updatedAt'
 > = {
-  environment: "dev",
+  environment: 'dev',
   maxRetries: 3,
   retryDelayMs: 2000,
   timeoutMs: 25000,
@@ -33,7 +33,7 @@ export class UserRetrySettingsService {
    */
   async getUserRetrySettings(
     userId: string,
-    environment: string = "dev"
+    environment: string = 'dev'
   ): Promise<UserRetrySettings> {
     try {
       const settings = await db
@@ -79,7 +79,7 @@ export class UserRetrySettingsService {
    */
   async createDefaultSettings(
     userId: string,
-    environment: string = "dev"
+    environment: string = 'dev'
   ): Promise<UserRetrySettings> {
     const newSettings: NewUserRetrySettings = {
       userId,
@@ -93,7 +93,7 @@ export class UserRetrySettingsService {
       .returning();
 
     if (!created) {
-      throw new Error("Failed to create default retry settings");
+      throw new Error('Failed to create default retry settings');
     }
 
     return created;
@@ -108,11 +108,11 @@ export class UserRetrySettingsService {
     updates: Partial<
       Pick<
         UserRetrySettings,
-        | "maxRetries"
-        | "retryDelayMs"
-        | "timeoutMs"
-        | "enableCircuitBreaker"
-        | "circuitBreakerThreshold"
+        | 'maxRetries'
+        | 'retryDelayMs'
+        | 'timeoutMs'
+        | 'enableCircuitBreaker'
+        | 'circuitBreakerThreshold'
       >
     >
   ): Promise<UserRetrySettings> {
@@ -144,8 +144,8 @@ export class UserRetrySettingsService {
    */
   async getUserWebhookUrl(
     userId: string,
-    environment: string = "development",
-    eventType: string = "stk_push_result"
+    environment: 'development' | 'staging' | 'production' = 'development',
+    eventType: string = 'stk_push_result'
   ): Promise<string | null> {
     try {
       // First, try to get from user_settings table (new method)
@@ -161,7 +161,9 @@ export class UserRetrySettingsService {
         .limit(1);
 
       if (userSetting.length > 0 && userSetting[0]?.webhookUrl) {
-        console.log(`✅ Found webhook URL for user ${userId} in ${environment}: ${userSetting[0].webhookUrl}`);
+        console.log(
+          `✅ Found webhook URL for user ${userId} in ${environment}: ${userSetting[0].webhookUrl}`
+        );
         return userSetting[0].webhookUrl;
       }
 
@@ -179,11 +181,15 @@ export class UserRetrySettingsService {
         .limit(1);
 
       if (webhook.length > 0 && webhook[0]) {
-        console.log(`✅ Found webhook URL for user ${userId} from webhooks table: ${webhook[0].url}`);
+        console.log(
+          `✅ Found webhook URL for user ${userId} from webhooks table: ${webhook[0].url}`
+        );
         return webhook[0].url;
       }
 
-      console.log(`❌ No webhook URL configured for user ${userId} in ${environment}`);
+      console.log(
+        `❌ No webhook URL configured for user ${userId} in ${environment}`
+      );
       return null;
     } catch (error) {
       console.error(`❌ Failed to get webhook URL for user ${userId}:`, error);
@@ -209,7 +215,7 @@ export class UserRetrySettingsService {
         responseStatus: attempt.responseCode,
         responseBody: attempt.responseBody,
         responseHeaders: attempt.responseHeaders,
-        success: attempt.status === "delivered",
+        success: attempt.status === 'delivered',
         attemptNumber: 1, // This should be passed from the calling context
         errorMessage: attempt.errorMessage,
         errorCategory: attempt.errorCategory,
@@ -233,7 +239,7 @@ export class UserRetrySettingsService {
     userId: string,
     originalJobId: string,
     attempts: EnhancedDeliveryAttempt[],
-    finalStatus: "delivered" | "failed" | "moved_to_dlq",
+    finalStatus: 'delivered' | 'failed' | 'moved_to_dlq',
     dlqJobId?: string
   ): Promise<void> {
     try {
@@ -246,8 +252,8 @@ export class UserRetrySettingsService {
 
       // Extract failure categories and retry pattern
       const failureCategories = attempts
-        .filter((a) => a.errorCategory)
-        .map((a) => a.errorCategory!)
+        .filter(a => a.errorCategory)
+        .map(a => a.errorCategory!)
         .filter((category, index, self) => self.indexOf(category) === index); // unique
 
       const retryPattern = attempts.map((attempt, index) => ({
@@ -309,13 +315,13 @@ export class UserRetrySettingsService {
 
       const totalDeliveries = stats.length;
       const successfulDeliveries = stats.filter(
-        (s) => s.finalStatus === "delivered"
+        s => s.finalStatus === 'delivered'
       ).length;
       const failedDeliveries = stats.filter(
-        (s) => s.finalStatus === "failed"
+        s => s.finalStatus === 'failed'
       ).length;
       const dlqDeliveries = stats.filter(
-        (s) => s.finalStatus === "moved_to_dlq"
+        s => s.finalStatus === 'moved_to_dlq'
       ).length;
 
       const successRate =
@@ -355,19 +361,19 @@ export class UserRetrySettingsService {
     userId: string;
     settings: UserRetrySettings;
   }> {
-    const userId = "test-user-" + Math.random().toString(36).substr(2, 9);
+    const userId = 'test-user-' + Math.random().toString(36).substr(2, 9);
 
     try {
       // Create test user settings
-      const settings = await this.createDefaultSettings(userId, "dev");
+      const settings = await this.createDefaultSettings(userId, 'dev');
 
       // Create a test webhook entry
       await db.insert(webhooks).values({
         userId,
-        url: "http://localhost:3002/webhooks/mpesa",
-        eventType: "stk_push_result",
+        url: 'http://localhost:3002/webhooks/mpesa',
+        eventType: 'stk_push_result',
         isActive: true,
-        description: "Test webhook for development",
+        description: 'Test webhook for development',
       });
 
       console.log(`🧪 Created test user ${userId} with default settings`);

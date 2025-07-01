@@ -53,8 +53,10 @@ export class WebhookController {
       }
 
       // Step 2: Get user's webhook configuration for the specified environment
-      const userConfig =
-        await this.settingsService.getUserWebhookConfig(userId, environment);
+      const userConfig = await this.settingsService.getUserWebhookConfig(
+        userId,
+        environment
+      );
 
       // Step 3: Create internal webhook payload
       const webhookPayload: Partial<WebhookPayload> = {
