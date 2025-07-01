@@ -5,6 +5,7 @@ import {
   deliveryAttempts,
   retryHistory,
   webhooks,
+  userSettings,
   type UserRetrySettings,
   type NewUserRetrySettings,
   type NewDeliveryAttempt,
@@ -143,10 +144,28 @@ export class UserRetrySettingsService {
    */
   async getUserWebhookUrl(
     userId: string,
-    environment: string = "dev",
+    environment: string = "development",
     eventType: string = "stk_push_result"
   ): Promise<string | null> {
     try {
+      // First, try to get from user_settings table (new method)
+      const userSetting = await db
+        .select()
+        .from(userSettings)
+        .where(
+          and(
+            eq(userSettings.userId, userId),
+            eq(userSettings.environment, environment)
+          )
+        )
+        .limit(1);
+
+      if (userSetting.length > 0 && userSetting[0]?.webhookUrl) {
+        console.log(`✅ Found webhook URL for user ${userId} in ${environment}: ${userSetting[0].webhookUrl}`);
+        return userSetting[0].webhookUrl;
+      }
+
+      // Fallback: try the old webhooks table method
       const webhook = await db
         .select()
         .from(webhooks)
@@ -160,20 +179,11 @@ export class UserRetrySettingsService {
         .limit(1);
 
       if (webhook.length > 0 && webhook[0]) {
+        console.log(`✅ Found webhook URL for user ${userId} from webhooks table: ${webhook[0].url}`);
         return webhook[0].url;
       }
 
-      // For development, return a test URL if no webhook configured
-      if (environment === "dev") {
-        console.warn(
-          `⚠️  No webhook URL configured for user ${userId}, using test URL`
-        );
-        return "http://localhost:3002/webhooks/mpesa";
-      }
-
-      console.warn(
-        `❌ No webhook URL configured for user ${userId} in ${environment}`
-      );
+      console.log(`❌ No webhook URL configured for user ${userId} in ${environment}`);
       return null;
     } catch (error) {
       console.error(`❌ Failed to get webhook URL for user ${userId}:`, error);
