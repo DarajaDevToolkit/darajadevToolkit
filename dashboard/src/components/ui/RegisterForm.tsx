@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function RegisterForm() {
-  const { signup, isLoading } = useAuth();
+  const { signup, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
@@ -25,12 +25,16 @@ export default function RegisterForm() {
     if (!form.email || !form.password || !form.confirmPassword) {
       return setError('All fields are required');
     }
+
     if (form.password !== form.confirmPassword) {
       return setError('Passwords do not match');
     }
 
-    const success = await signup(form.email, form.password);
-    if (!success) setError('Registration failed. Try again.');
+    try {
+      await signup(form.email, form.password); // Redirect handled in context
+    } catch (err) {
+      setError('Registration failed. Try again.');
+    }
   };
 
   return (
@@ -86,8 +90,12 @@ export default function RegisterForm() {
         </Button>
       </div>
 
-      <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={isLoading}>
-        {isLoading ? 'Registering...' : 'Sign Up'}
+      <Button
+        type="submit"
+        className="w-full bg-green-600 hover:bg-green-700 text-white"
+        disabled={loading}
+      >
+        {loading ? 'Registering...' : 'Sign Up'}
       </Button>
     </form>
   );
