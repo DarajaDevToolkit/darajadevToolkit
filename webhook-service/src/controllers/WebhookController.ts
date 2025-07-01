@@ -22,6 +22,7 @@ export class WebhookController {
    */
   async handleWebhook(c: Context) {
     const userId = c.req.param('userId');
+    const environment = c.req.query('env') || 'development'; // Extract env query parameter
     const clientIP =
       c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
 
@@ -51,9 +52,9 @@ export class WebhookController {
         );
       }
 
-      // Step 2: Get user's webhook configuration
+      // Step 2: Get user's webhook configuration for the specified environment
       const userConfig =
-        await this.settingsService.getUserWebhookConfig(userId);
+        await this.settingsService.getUserWebhookConfig(userId, environment);
 
       // Step 3: Create internal webhook payload
       const webhookPayload: Partial<WebhookPayload> = {

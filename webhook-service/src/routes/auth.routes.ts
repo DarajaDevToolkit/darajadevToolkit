@@ -16,7 +16,7 @@ import {
 
 //use request-ip library for better IP handling later on⬇
 const loginAttempts: Record<string, { count: number; last: number }> = {};
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS = 35;
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 import type { Context, Next } from 'hono';
 
