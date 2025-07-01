@@ -192,9 +192,34 @@ jobs:
   #       run: |
   #         npx prettier --check . || exit 1
 
-  build-and-push-docker:
+  detect-changes:
     runs-on: ubuntu-latest
     needs: [test]
+    outputs:
+      dashboard_changed: ${{ steps.set.outputs.dashboard_changed }}
+      webhook_service_changed: ${{ steps.set.outputs.webhook_service_changed }}
+      cli_changed: ${{ steps.set.outputs.cli_changed }}
+      delivery_worker_changed: ${{ steps.set.outputs.delivery_worker_changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        run: |
+          git fetch origin ${{ github.event.before }}
+          changed_dirs=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | cut -d/ -f1 | sort -u)
+          echo "Changed directories: $changed_dirs"
+          for dir in dashboard webhook-service cli delivery-worker; do
+            if echo "$changed_dirs" | grep -q "^$dir$"; then
+              key_name="${dir//-/_}_changed"
+              echo "$key_name=true" >> $GITHUB_OUTPUT
+            else
+              key_name="${dir//-/_}_changed"
+              echo "$key_name=false" >> $GITHUB_OUTPUT
+            fi
+          done
+
+  build-and-push-docker:
+    runs-on: ubuntu-latest
+    needs: [detect-changes]
     strategy:
       matrix:
         service:
@@ -202,6 +227,7 @@ jobs:
           - webhook-service
           - cli
           - delivery-worker
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
@@ -215,22 +241,12 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Detect changes in ${{ matrix.service }}
-        id: detect_changes
-        run: |
-          git fetch origin ${{ github.event.before }}
-          changes=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | cut -d/ -f1 | sort -u)
-
-          echo "Changed directories: $changes"
-
-          if echo "$changes" | grep -q "^${{ matrix.service }}$"; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Build and push ${{ matrix.service }}
-        if: steps.detect_changes.outputs.changed == 'true'
+        if: |
+          (matrix.service == 'dashboard' && needs.detect-changes.outputs.dashboard_changed == 'true') ||
+          (matrix.service == 'webhook-service' && needs.detect-changes.outputs.webhook_service_changed == 'true') ||
+          (matrix.service == 'cli' && needs.detect-changes.outputs.cli_changed == 'true') ||
+          (matrix.service == 'delivery-worker' && needs.detect-changes.outputs.delivery_worker_changed == 'true')
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/darajadev-${{ matrix.service }}:latest
         run: |
@@ -246,7 +262,6 @@ jobs:
 
           docker build -f "$DOCKERFILE" -t "$IMAGE" "$CONTEXT"
           docker push "$IMAGE"
-
 
   # build-and-push-docker:
   #   runs-on: ubuntu-latest
@@ -266,16 +281,12 @@ jobs:
   #       run: >
   #         echo "Getting changed top-level dirs..."
 
-
   #         git fetch origin ${{ github.event.before }}
-
 
   #         changed_dirs=$(git diff --name-only ${{ github.event.before }} ${{
   #         github.sha }} | cut -d/ -f1 | sort -u)
 
-
   #         echo "Changed directories: $changed_dirs"
-
 
   #         for dir in dashboard webhook-service cli delivery-worker; do
   #           if echo "$changed_dirs" | grep -q "^$dir$"; then
