@@ -236,18 +236,17 @@ jobs:
         run: |
           echo "🔨 Building ${{ matrix.service }}..."
 
-          DOCKERFILE_ARG=""
-          CONTEXT="."
+          CONTEXT="./${{ matrix.service }}"
+          DOCKERFILE="${CONTEXT}/Dockerfile"
 
-          # Override Dockerfile location only for these services
-          case "${{ matrix.service }}" in
-            dashboard|cli|delivery-worker)
-              DOCKERFILE_ARG="-f ./${{ matrix.service }}/Dockerfile"
-              ;;
-          esac
+          if [ ! -f "$DOCKERFILE" ]; then
+            echo "❌ No Dockerfile found for ${{ matrix.service }} at $DOCKERFILE"
+            exit 1
+          fi
 
-          docker build $DOCKERFILE_ARG -t $IMAGE $CONTEXT
-          docker push $IMAGE
+          docker build -f "$DOCKERFILE" -t "$IMAGE" "$CONTEXT"
+          docker push "$IMAGE"
+
 
   # build-and-push-docker:
   #   runs-on: ubuntu-latest

@@ -15,11 +15,11 @@ The Dashboard is the web interface for the Daraja Developer Toolkit - a bulletpr
 - **Environment management** - Switch between dev, staging, and production with a click
 - **Delivery analytics** - Track success rates, response times, and failure patterns
 - **Debug tools** - Inspect webhook payloads, retry failed deliveries, and troubleshoot issues
-- **Configuration dashboard** - Manage your permanent URLs and endpoint routing
+- **Configuration dashboard** - Manage your permanent URLs and endpoint routing.
 
 ## ⚡ Quick Start
 
-### Prerequisites
+### Prerequisites 
 
 - Node.js 18+ (we recommend using [fnm](https://github.com/Schniz/fnm) or [nvm](https://github.com/nvm-sh/nvm))
 - Basic knowledge of React/Next.js
