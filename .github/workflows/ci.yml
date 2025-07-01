@@ -325,7 +325,6 @@ jobs:
 
   #         docker push ghcr.io/${{ github.repository_owner }}/darajadev-delivery-worker:latest
 
-
   # trivy-scan:
   #   runs-on: ubuntu-latest
   #   needs: [build-and-push-docker]
