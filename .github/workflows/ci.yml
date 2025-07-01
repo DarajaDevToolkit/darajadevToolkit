@@ -230,25 +230,24 @@ jobs:
           fi
 
       - name: Build and push ${{ matrix.service }}
-        env:
-            context: .
-            dockerfile_arg: -f ./${{ matrix.service }}/Dockerfile
         if: steps.detect_changes.outputs.changed == 'true'
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/darajadev-${{ matrix.service }}:latest
         run: |
           echo "🔨 Building ${{ matrix.service }}..."
 
-          dockerfile_arg=""
-          context="./${{ matrix.service }}"
+          DOCKERFILE_ARG=""
+          CONTEXT="."
 
-          # Only override Dockerfile for dashboard, cli, and delivery-worker
+          # Override Dockerfile location only for these services
           case "${{ matrix.service }}" in
             dashboard|cli|delivery-worker)
-              dockerfile_arg="-f ${context}/Dockerfile"
+              DOCKERFILE_ARG="-f ./${{ matrix.service }}/Dockerfile"
               ;;
           esac
 
-          docker build $dockerfile_arg -t ghcr.io/${{ github.repository_owner }}/darajadev-${{ matrix.service }}:latest $context
-          docker push ghcr.io/${{ github.repository_owner }}/darajadev-${{ matrix.service }}:latest
+          docker build $DOCKERFILE_ARG -t $IMAGE $CONTEXT
+          docker push $IMAGE
 
   # build-and-push-docker:
   #   runs-on: ubuntu-latest
