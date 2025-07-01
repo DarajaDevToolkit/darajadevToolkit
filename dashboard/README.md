@@ -14,7 +14,7 @@ The Dashboard is the web interface for the Daraja Developer Toolkit - a bulletpr
 - **Real-time webhook monitoring** - See every webhook as it flows through the system
 - **Environment management** - Switch between dev, staging, and production with a click
 - **Delivery analytics** - Track success rates, response times, and failure patterns
-- **Debug tools** - Inspect webhook payloads, retry failed deliveries, and troubleshoot issues
+- **Debug tools** - Inspect webhook payloads, retry failed deliveries, and troubleshoot issues.
 - **Configuration dashboard** - Manage your permanent URLs and endpoint routing.
 
 ## ⚡ Quick Start

@@ -236,8 +236,8 @@ jobs:
         run: |
           echo "🔨 Building ${{ matrix.service }}..."
 
-          CONTEXT="./${{ matrix.service }}"
-          DOCKERFILE="${CONTEXT}/Dockerfile"
+          CONTEXT="."
+          DOCKERFILE="${{ matrix.service }}/Dockerfile"
 
           if [ ! -f "$DOCKERFILE" ]; then
             echo "❌ No Dockerfile found for ${{ matrix.service }} at $DOCKERFILE"
