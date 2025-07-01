@@ -21,7 +21,7 @@ npm install
 # 2. Start local services (Redis & PostgreSQL)
 docker compose up -d
 
-# 3. Copy environment variables
+# 3. Copy environment variables.
 cp .env.example .env
 
 # 4. Start development servers

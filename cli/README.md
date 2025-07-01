@@ -8,7 +8,7 @@ Command-line interface for the Daraja Developer Toolkit.
 - 📊 **Monitoring** - Real-time webhook status and analytics
 - 🧪 **Testing** - Send test webhooks and validate your endpoints
 - 🔄 **Environment Management** - Switch between dev/staging/prod environments
-- 📝 **Logs** - View detailed webhook delivery logs
+- 📝 **Logs** - View detailed webhook delivery logs.
 
 ## Installation
 

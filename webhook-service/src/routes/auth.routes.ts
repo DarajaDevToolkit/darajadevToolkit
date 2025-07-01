@@ -10,7 +10,7 @@ import type { Context, Next } from 'hono';
 function rateLimit(c: Context, next: Next) {
   const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
   const now = Date.now();
-  // Initialize or update login attempts for this IP
+  // Initialize or update login attempts for this IP.
   if (!loginAttempts[ip] || now - loginAttempts[ip].last > WINDOW_MS) {
     loginAttempts[ip] = { count: 1, last: now }; // Reset count if outside the time window
   } else {
