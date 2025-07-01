@@ -13,6 +13,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   signup: (email: string, password: string) => Promise<void>;
+  resetPassword?: (email: string) => Promise<void>;
   loading: boolean
 }
 
@@ -64,33 +65,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signup = async (email: string, password: string) => {
-  setLoading(true);
-  try {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!res.ok) {
-      throw new Error('Signup failed');
-    }
+      if (!res.ok) {
+        throw new Error('Signup failed');
+      }
 
     const userData = await res.json();
-    setUser(userData); // assume your API returns user data
+    setUser(userData); // assume  API returns user data
     router.push('/dashboard');
-  } catch (error) {
-    console.error('Signup error:', error);
-    throw error;
-  } finally {
-    setLoading(false);
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   }
-};
+
+  const resetPassword = async (email: string) => {
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to send reset email');
+      }
+
+      // Optionally: show a success toast or return a status
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
+  }
+
 
 
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, signup, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, signup, resetPassword, loading }}>
       {children}
     </AuthContext.Provider>
   )

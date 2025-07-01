@@ -1,5 +1,10 @@
-const LoginPage = () => {
-  return <div className="">LoginPage</div>;
-};
+import AuthLayout from '@/components/ui/AuthLayout';
+import LoginForm from '@/components/ui/LoginForm';
 
-export default LoginPage;
+export default function LoginPage() {
+  return (
+    <AuthLayout>
+      <LoginForm />
+    </AuthLayout>
+  );
+}

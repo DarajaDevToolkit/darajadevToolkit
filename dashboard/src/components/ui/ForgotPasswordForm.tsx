@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -21,16 +21,23 @@ export default function ForgotPasswordForm() {
 
     if (!email) {
       setStatus('error');
-      return setMessage('Please enter your email.');
+      setMessage('Please enter your email.');
+      return;
     }
 
-    const success = await resetPassword(email);
-    if (success) {
-      setStatus('success');
-      setMessage('Check your inbox for password reset instructions.');
-    } else {
+    try {
+      const success = await resetPassword?.(email); // ✅ optional chaining in case it's undefined
+      if (success) {
+        setStatus('success');
+        setMessage('Check your inbox for password reset instructions.');
+      } else {
+        setStatus('error');
+        setMessage('Error sending reset email. Please try again.');
+      }
+    } catch (error) {
       setStatus('error');
-      setMessage('Error sending reset email. Please try again.');
+      setMessage('Unexpected error occurred. Please try again later.');
+      console.error('Reset error:', error);
     }
   };
 
@@ -43,7 +50,11 @@ export default function ForgotPasswordForm() {
 
       {status !== 'idle' && (
         <Alert variant={status === 'success' ? 'default' : 'destructive'}>
-          {status === 'success' ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+          {status === 'success' ? (
+            <CheckCircle className="h-4 w-4" />
+          ) : (
+            <AlertCircle className="h-4 w-4" />
+          )}
           <AlertDescription>{message}</AlertDescription>
         </Alert>
       )}
@@ -58,7 +69,11 @@ export default function ForgotPasswordForm() {
         />
       </div>
 
-      <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white">
+      <Button
+        type="submit"
+        className="w-full bg-green-600 hover:bg-green-700 text-white"
+        disabled={status === 'success'}
+      >
         Send Reset Link
       </Button>
     </form>
