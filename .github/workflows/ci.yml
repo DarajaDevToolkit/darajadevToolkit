@@ -230,6 +230,9 @@ jobs:
           fi
 
       - name: Build and push ${{ matrix.service }}
+        env:
+            context: .
+            dockerfile_arg: -f ./${{ matrix.service }}/Dockerfile
         if: steps.detect_changes.outputs.changed == 'true'
         run: |
           echo "🔨 Building ${{ matrix.service }}..."
