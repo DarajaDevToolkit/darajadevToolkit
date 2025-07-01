@@ -3,18 +3,20 @@ import { eq } from 'drizzle-orm';
 import db from '../drizzle/db';
 import { SignJWT, jwtVerify } from 'jose';
 import crypto from 'crypto';
-import { error } from 'console';
+import type { z } from 'zod';
+import type { registerUserValidator } from '../validators/user.validators';
 
 // Token expiry durations (in seconds) ,<= later store this in the  .env file
 const ACCESS_TOKEN_EXPIRY = 15 * 60; // 15 minutes
-const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60; // 7 days
 
 // JWT secret keys (should be in env vars in production)
 const ACCESS_TOKEN_SECRET = Bun.env.ACCESS_TOKEN_SECRET || 'access_secret';
-const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET || 'refresh_secret';
+
+// Define type for user registration data
+type RegisterUserData = z.infer<typeof registerUserValidator>;
 
 // register a new user with secure password hashing and API key generation
-export const registerUserService = async (userData: any) => {
+export const registerUserService = async (userData: RegisterUserData) => {
   try {
     // Check if user already exists
     const existing = await db
@@ -66,6 +68,12 @@ export const loginUserService = async (email: string, password: string) => {
     // Compare password securely using Bun
     const valid = await Bun.password.verify(password, user.passwordHash);
     if (!valid) throw new Error('Invalid credentials');
+
+    // Update last login timestamp
+    await db
+      .update(users)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(users.id, user.id));
 
     // Generate access token (short-lived) using jose
     const accessToken = await new SignJWT({ userId: user.id, role: user.role })
@@ -169,36 +177,32 @@ export const getUsersService = async (
   }>;
   total: number;
 }> => {
-  try {
-    // Validate pagination parameters
-    if (page < 1) throw new Error('Page must be at least 1');
-    if (limit < 1 || limit > 100)
-      throw new Error('Limit must be between 1 and 100');
+  // Validate pagination parameters
+  if (page < 1) throw new Error('Page must be at least 1');
+  if (limit < 1 || limit > 100)
+    throw new Error('Limit must be between 1 and 100');
 
-    const offset = (page - 1) * limit;
+  const offset = (page - 1) * limit;
 
-    // Get paginated users
-    const userList = await db.select().from(users).limit(limit).offset(offset);
-    // Get total count for pagination metadata
-    // const totalResult = await db.select({ count: sql<number>`count(*)` })
-    const totalResult = await db.select().from(users);
-    const total = totalResult.length;
+  // Get paginated users
+  const userList = await db.select().from(users).limit(limit).offset(offset);
+  // Get total count for pagination metadata
+  // const totalResult = await db.select({ count: sql<number>`count(*)` })
+  const totalResult = await db.select().from(users);
+  const total = totalResult.length;
 
-    return {
-      users: userList.map(user => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        apiKey: user.apiKey ?? '',
-        role: user.role ?? 'user',
-        isActive: user.isActive ?? false,
-      })),
-      total,
-    };
-  } catch (error) {
-    throw error;
-  }
+  return {
+    users: userList.map(user => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      apiKey: user.apiKey ?? '',
+      role: user.role ?? 'user',
+      isActive: user.isActive ?? false,
+    })),
+    total,
+  };
 };
 
 //getUserById
