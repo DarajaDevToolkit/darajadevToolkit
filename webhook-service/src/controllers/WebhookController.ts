@@ -1,25 +1,29 @@
-import type { Context } from "hono";
-import type { MpesaResponse, WebhookPayload } from "@daraja-toolkit/shared";
-import { WebhookValidationService } from "../services/WebhookValidationService";
-import { WebhookQueueService } from "../services/WebhookQueueService";
-import type { WebhookEventType } from "@daraja-toolkit/shared";
+import type { Context } from 'hono';
+import type { MpesaResponse, WebhookPayload } from '@daraja-toolkit/shared';
+import { WebhookValidationService } from '../services/WebhookValidationService';
+import { WebhookQueueService } from '../services/WebhookQueueService';
+import { SettingsService } from '../services/SettingsService';
+import type { WebhookEventType } from '@daraja-toolkit/shared';
+import db from '../drizzle/db';
 
 export class WebhookController {
   private validationService: WebhookValidationService;
   private queueService: WebhookQueueService;
+  private settingsService: SettingsService;
 
   constructor() {
     this.validationService = new WebhookValidationService();
     this.queueService = new WebhookQueueService();
+    this.settingsService = new SettingsService(db);
   }
 
   /**
    * Handle incoming M-Pesa webhook
    */
   async handleWebhook(c: Context) {
-    const userId = c.req.param("userId");
+    const userId = c.req.param('userId');
     const clientIP =
-      c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
+      c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
 
     try {
       // Parse the payload
@@ -41,31 +45,38 @@ export class WebhookController {
         return c.json(
           {
             ResultCode: 1,
-            ResultDesc: validationResult.error || "Invalid payload format",
+            ResultDesc: validationResult.error || 'Invalid payload format',
           } as MpesaResponse,
           400
         );
       }
 
-      // Step 2: Create internal webhook payload
+      // Step 2: Get user's webhook configuration
+      const userConfig =
+        await this.settingsService.getUserWebhookConfig(userId);
+
+      // Step 3: Create internal webhook payload
       const webhookPayload: Partial<WebhookPayload> = {
         userId,
         eventType: validationResult.webhookType as WebhookEventType,
         payload,
         receivedAt: new Date(),
-        environment: "dev", // TODO: Get from user settings
+        environment: userConfig.environment as
+          | 'development'
+          | 'staging'
+          | 'production',
       };
 
-      // Step 3: Queue for delivery
+      // Step 4: Queue for delivery
       console.log(
-        `[${userId}] Queuing webhook for delivery: ${validationResult.webhookType}`
+        `[${userId}] Queuing webhook for delivery: ${validationResult.webhookType} to ${userConfig.environment}`
       );
       await this.queueService.queueWebhook(webhookPayload);
 
       // Step 4: Immediate response to M-Pesa
       const response: MpesaResponse = {
         ResultCode: 0,
-        ResultDesc: "Success",
+        ResultDesc: 'Success',
       };
 
       return c.json(response);
@@ -76,7 +87,7 @@ export class WebhookController {
       // We will only retry failed jobs later
       return c.json({
         ResultCode: 0,
-        ResultDesc: "Accepted",
+        ResultDesc: 'Accepted',
       } as MpesaResponse);
     }
   }
@@ -85,22 +96,22 @@ export class WebhookController {
    * Handle test webhook (for development)
    */
   async handleTestWebhook(c: Context) {
-    const userId = c.req.param("userId");
+    const userId = c.req.param('userId');
 
     // Sample M-Pesa STK Push callback for testing
     const testPayload = {
       Body: {
         stkCallback: {
-          MerchantRequestID: "test-merchant-request-123",
-          CheckoutRequestID: "test-checkout-request-456",
+          MerchantRequestID: 'test-merchant-request-123',
+          CheckoutRequestID: 'test-checkout-request-456',
           ResultCode: 0,
-          ResultDesc: "The service request is processed successfully.",
+          ResultDesc: 'The service request is processed successfully.',
           CallbackMetadata: {
             Item: [
-              { Name: "Amount", Value: 1000 },
-              { Name: "MpesaReceiptNumber", Value: "TEST123456" },
-              { Name: "TransactionDate", Value: 20231219120000 },
-              { Name: "PhoneNumber", Value: 254712345678 },
+              { Name: 'Amount', Value: 1000 },
+              { Name: 'MpesaReceiptNumber', Value: 'TEST123456' },
+              { Name: 'TransactionDate', Value: 20231219120000 },
+              { Name: 'PhoneNumber', Value: 254712345678 },
             ],
           },
         },
@@ -110,7 +121,7 @@ export class WebhookController {
     console.log(`[${userId}] Test webhook triggered`);
 
     return c.json({
-      message: "Test webhook would be processed",
+      message: 'Test webhook would be processed',
       payload: testPayload,
       userId,
     });
@@ -120,13 +131,13 @@ export class WebhookController {
    * Test priority handling - queue webhooks with different priorities
    */
   async testPriorities(c: Context) {
-    const userId = c.req.param("userId") || "priority_test_user";
+    const userId = c.req.param('userId') || 'priority_test_user';
 
     // Create test webhook payload
     const createTestWebhook = (priority: string, id: number) => ({
       id: `test_${priority}_${id}_${Date.now()}`,
       userId,
-      eventType: "stk_push_result" as WebhookEventType,
+      eventType: 'stk_push_result' as WebhookEventType,
       payload: {
         Body: {
           stkCallback: {
@@ -138,7 +149,7 @@ export class WebhookController {
         },
       },
       receivedAt: new Date(),
-      environment: "dev" as const,
+      environment: 'development' as const,
     });
 
     try {
@@ -147,33 +158,33 @@ export class WebhookController {
       // Queue webhooks in different priorities
       // First add LOW priority jobs
       await this.queueService.queueWebhookWithPriority(
-        createTestWebhook("LOW", 1),
+        createTestWebhook('LOW', 1),
         1 // LOW priority
       );
       await this.queueService.queueWebhookWithPriority(
-        createTestWebhook("LOW", 2),
+        createTestWebhook('LOW', 2),
         1 // LOW priority
       );
 
       // Then add NORMAL priority jobs
       await this.queueService.queueWebhookWithPriority(
-        createTestWebhook("NORMAL", 1),
+        createTestWebhook('NORMAL', 1),
         5 // NORMAL priority
       );
       await this.queueService.queueWebhookWithPriority(
-        createTestWebhook("NORMAL", 2),
+        createTestWebhook('NORMAL', 2),
         5 // NORMAL priority
       );
 
       // Then add HIGH priority jobs
       await this.queueService.queueWebhookWithPriority(
-        createTestWebhook("HIGH", 1),
+        createTestWebhook('HIGH', 1),
         10 // HIGH priority
       );
 
       // Finally add URGENT priority job
       await this.queueService.queueWebhookWithPriority(
-        createTestWebhook("URGENT", 1),
+        createTestWebhook('URGENT', 1),
         20 // URGENT priority
       );
 
@@ -181,17 +192,17 @@ export class WebhookController {
       console.log(`📋 Expected processing order: URGENT → HIGH → NORMAL → LOW`);
 
       return c.json({
-        message: "Priority test completed",
+        message: 'Priority test completed',
         userId,
         jobsQueued: 6,
-        expectedOrder: ["URGENT", "HIGH", "NORMAL", "NORMAL", "LOW", "LOW"],
-        note: "Check worker logs to see actual processing order",
+        expectedOrder: ['URGENT', 'HIGH', 'NORMAL', 'NORMAL', 'LOW', 'LOW'],
+        note: 'Check worker logs to see actual processing order',
       });
     } catch (error: any) {
       console.error(`❌ [${userId}] Priority test failed:`, error);
       return c.json(
         {
-          error: "Priority test failed",
+          error: 'Priority test failed',
           message: error.message,
         },
         500
@@ -204,8 +215,8 @@ export class WebhookController {
    */
   async healthCheck(c: Context) {
     return c.json({
-      status: "ok",
-      service: "webhook-service",
+      status: 'ok',
+      service: 'webhook-service',
       timestamp: new Date().toISOString(),
     });
   }
@@ -217,11 +228,11 @@ export class WebhookController {
     try {
       const queueHealth = await this.queueService.getQueueHealth();
 
-      const httpStatus = queueHealth.status === "healthy" ? 200 : 503;
+      const httpStatus = queueHealth.status === 'healthy' ? 200 : 503;
 
       return c.json(
         {
-          service: "webhook-service",
+          service: 'webhook-service',
           timestamp: new Date().toISOString(),
           ...queueHealth,
         },
@@ -230,12 +241,12 @@ export class WebhookController {
     } catch (error: any) {
       return c.json(
         {
-          service: "webhook-service",
+          service: 'webhook-service',
           timestamp: new Date().toISOString(),
-          status: "unhealthy",
+          status: 'unhealthy',
           error: error.message,
           queue: {
-            name: "webhook-delivery",
+            name: 'webhook-delivery',
             waiting: 0,
             active: 0,
             failed: 0,

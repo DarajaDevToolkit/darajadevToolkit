@@ -1,0 +1,342 @@
+###############################################
+# DARAJA TOOLKIT - AUTHENTICATION TEST SUITE
+###############################################
+
+### Variables (Update these after each test)
+@baseUrl = http://localhost:3001
+@userId = bb109a17-2975-44cb-a5e4-2ab8240cfb36
+@jwtToken = eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJiYjEwOWExNy0yOTc1LTQ0Y2ItYTVlNC0yYWI4MjQwY2ZiMzYiLCJyb2xlIjoidXNlciIsImV4cCI6MTc1MTM4ODg5NH0.4HWDY1JdhSZUrypRlAC_EKYjiR9dmFjfo6DnV7NoJyc
+@refreshToken = 972e5c95-fb7b-4aaa-9e2e-de90c52fc12d
+@apiKey = b1c78eaf-ecc8-4b40-855b-bec63110cff2
+
+###############################################
+# 1. USER REGISTRATION TESTS
+###############################################
+
+### 1.1 Register New User (Success)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "secure123",
+  "phoneNumber": "+254712345678"
+}
+
+### 1.2 Register Duplicate User (Should Fail)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "secure123",
+  "phoneNumber": "+254712345679"
+}
+
+### 1.3 Register Invalid Email (Should Fail)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "email": "invalid-email",
+  "password": "secure123",
+  "phoneNumber": "+254712345680"
+}
+
+###############################################
+# 2. USER LOGIN TESTS
+###############################################
+
+### 2.1 Login Valid User (Success)
+# Copy the accessToken, refreshToken, and user.id from response
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "secure123"
+}
+
+### 2.2 Login Invalid Password (Should Fail)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "wrongpassword"
+}
+
+### 2.3 Login Non-existent User (Should Fail)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "secure123"
+}
+
+### 2.4 Rate Limiting Test (Run this 6 times quickly)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "wrongpassword"
+}
+
+###############################################
+# 3. REFRESH TOKEN TESTS
+###############################################
+
+### 3.1 Refresh Access Token (Success)
+# Use refreshToken from login response
+POST {{baseUrl}}/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### 3.2 Use Invalid Refresh Token (Should Fail)
+POST {{baseUrl}}/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "invalid-refresh-token"
+}
+
+###############################################
+# 4. PROTECTED ROUTES - ADMIN ONLY
+###############################################
+
+### 4.1 Get All Users (Admin Only - Should Fail without proper role)
+GET {{baseUrl}}/users
+Authorization: Bearer {{jwtToken}}
+
+### 4.2 Get All Users (No Auth - Should Fail)
+GET {{baseUrl}}/users
+
+###############################################
+# 5. PROTECTED ROUTES - SELF OR ADMIN
+###############################################
+
+### 5.1 Get Own User Profile (Success)
+# Replace {{userId}} with actual user ID from login response
+GET {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{jwtToken}}
+
+### 5.2 Get Other User Profile (Should Fail for non-admin)
+GET {{baseUrl}}/users/different-user-id
+Authorization: Bearer {{jwtToken}}
+
+### 5.3 Update Own Profile (Success)
+PUT {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "name": "John Updated",
+  "phoneNumber": "+254712345699"
+}
+
+### 5.4 Update Other User Profile (Should Fail for non-admin)
+PUT {{baseUrl}}/users/different-user-id
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "name": "Unauthorized Update"
+}
+
+###############################################
+# 6. JWT TOKEN VALIDATION TESTS
+###############################################
+
+### 6.1 Use Expired/Invalid JWT (Should Fail)
+GET {{baseUrl}}/users/{{userId}}
+Authorization: Bearer invalid-jwt-token
+
+### 6.2 Missing Authorization Header (Should Fail)
+GET {{baseUrl}}/users/{{userId}}
+
+### 6.3 Wrong Authorization Format (Should Fail)
+GET {{baseUrl}}/users/{{userId}}
+Authorization: {{jwtToken}}
+
+###############################################
+# 7. API KEY AUTHENTICATION TESTS
+###############################################
+
+### 7.1 Test Webhook with Valid API Key (Success)
+# Replace {{apiKey}} with actual API key from registration response
+POST {{baseUrl}}/webhook/{{userId}}
+X-API-Key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "Body": {
+    "stkCallback": {
+      "MerchantRequestID": "test-merchant-123",
+      "CheckoutRequestID": "test-checkout-456",
+      "ResultCode": 0,
+      "ResultDesc": "Test payment successful",
+      "CallbackMetadata": {
+        "Item": [
+          { "Name": "Amount", "Value": 1000 },
+          { "Name": "MpesaReceiptNumber", "Value": "TEST123456" },
+          { "Name": "TransactionDate", "Value": 20240101120000 },
+          { "Name": "PhoneNumber", "Value": 254712345678 }
+        ]
+      }
+    }
+  }
+}
+
+### 7.2 Test Webhook with Invalid API Key (Should Fail)
+POST {{baseUrl}}/webhook/{{userId}}
+X-API-Key: invalid-api-key
+Content-Type: application/json
+
+{
+  "Body": {
+    "stkCallback": {
+      "MerchantRequestID": "test-merchant-123",
+      "CheckoutRequestID": "test-checkout-456",
+      "ResultCode": 0,
+      "ResultDesc": "Test payment"
+    }
+  }
+}
+
+### 7.3 Test Webhook without API Key (Should Fail)
+POST {{baseUrl}}/webhook/{{userId}}
+Content-Type: application/json
+
+{
+  "Body": {
+    "stkCallback": {
+      "MerchantRequestID": "test-merchant-123",
+      "CheckoutRequestID": "test-checkout-456",
+      "ResultCode": 0,
+      "ResultDesc": "Test payment"
+    }
+  }
+}
+
+###############################################
+# 8. TEST WEBHOOK ENDPOINTS
+###############################################
+
+### 8.1 Test Development Webhook (with API Key)
+POST {{baseUrl}}/test/{{userId}}
+X-API-Key: {{apiKey}}
+Content-Type: application/json
+
+### 8.2 Priority Test Webhook (with API Key)
+POST {{baseUrl}}/test-priorities/{{userId}}
+X-API-Key: {{apiKey}}
+Content-Type: application/json
+
+###############################################
+# 9. HEALTH CHECK ENDPOINTS (Public)
+###############################################
+
+### 9.1 General Health Check
+GET {{baseUrl}}/health
+
+### 9.2 Queue Health Check
+GET {{baseUrl}}/health/queue
+
+###############################################
+# 10. USER SETTINGS TESTS (Protected)
+###############################################
+
+### 10.1 Get User Settings
+GET {{baseUrl}}/settings/{{userId}}
+Authorization: Bearer {{jwtToken}}
+
+### 10.2 Create/Update User Setting (Development Environment)
+POST {{baseUrl}}/settings/{{userId}}
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "environment": "development",
+  "webhookUrl": "https://dev.myapp.com/webhook"
+}
+
+### 10.3 Create/Update User Setting (Production Environment)
+POST {{baseUrl}}/settings/{{userId}}
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "environment": "production",
+  "webhookUrl": "https://myapp.com/webhook"
+}
+
+### 10.4 Create/Update User Setting (Staging Environment)
+POST {{baseUrl}}/settings/{{userId}}
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "environment": "staging",
+  "webhookUrl": "https://staging.myapp.com/webhook"
+}
+
+###############################################
+# TEST CHECKLIST - EXPECTED RESULTS
+###############################################
+
+# ✅ User Registration:
+# - 1.1 Should return 201 with user details and API key
+# - 1.2 Should return 400 "User already exists"
+# - 1.3 Should return 400 for invalid data
+
+# ✅ User Login:
+# - 2.1 Should return 200 with accessToken, refreshToken, user
+# - 2.2 Should return 401 "Invalid credentials" 
+# - 2.3 Should return 404 "User not found"
+# - 2.4 Should return 429 "Too many attempts" after 5 tries
+
+# ✅ Refresh Token:
+# - 3.1 Should return 200 with new tokens
+# - 3.2 Should return 401 "Invalid refresh token"
+
+# ✅ Protected Routes:
+# - 4.1 Should return 403 if not admin role
+# - 4.2 Should return 401 "Missing Authorization header"
+# - 5.1 Should return 200 with user data
+# - 5.2 Should return 403 "Access denied"
+
+# ✅ JWT Validation:
+# - 6.1-6.3 Should all return 401 with appropriate error messages
+
+# ✅ API Key Authentication:
+# - 7.1 Should return 200 and queue webhook
+# - 7.2-7.3 Should return 401 "Invalid/Missing API key"
+
+# ✅ Webhook Endpoints:
+# - 8.1-8.2 Should work with valid API key
+# - All should fail without proper authentication
+
+# ✅ Health Checks:
+# - 9.1-9.2 Should return 200 (public endpoints)
+
+# ✅ User Settings:
+# - 10.1-10.4 Should work with JWT authentication
+# - Should store different webhook URLs per environment
+
+###############################################
+# QUICK TEST SEQUENCE
+###############################################
+
+# 1. Run 1.1 (Register) -> Copy apiKey from response
+# 2. Run 2.1 (Login) -> Copy accessToken, refreshToken, userId
+# 3. Update variables at top of file
+# 4. Run tests in order to verify all functionality
+# 5. Check server logs for detailed error messages
