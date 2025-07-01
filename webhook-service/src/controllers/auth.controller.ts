@@ -8,29 +8,37 @@ import {
   deleteUserService,
   refreshTokenService,
 } from 'src/services/auth.service';
-import { registerUserValidator, loginUserValidator } from '../validators/user.validators';
+import {
+  registerUserValidator,
+  loginUserValidator,
+} from '../validators/user.validators';
 
 export const registerUserController = async (c: Context) => {
   try {
     const userData = await c.req.json();
-    
+
     // Validate input data using Zod schema
     const validationResult = registerUserValidator.safeParse(userData);
     if (!validationResult.success) {
       const errors = validationResult.error.errors.map(err => ({
         field: err.path.join('.'),
-        message: err.message
+        message: err.message,
       }));
-      return c.json({ 
-        error: 'Validation failed', 
-        details: errors 
-      }, 400);
+      return c.json(
+        {
+          error: 'Validation failed',
+          details: errors,
+        },
+        400
+      );
     }
 
     const message = await registerUserService(validationResult.data);
     return c.json({ message }, 201);
-  } catch (error: any) {
-    return c.json({ error: error.message }, 400);
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    return c.json({ error: errorMessage }, 400);
   }
 };
 
@@ -44,21 +52,28 @@ export const loginUserController = async (c: Context) => {
     if (!validationResult.success) {
       const errors = validationResult.error.errors.map(err => ({
         field: err.path.join('.'),
-        message: err.message
+        message: err.message,
       }));
-      return c.json({ 
-        error: 'Validation failed', 
-        details: errors 
-      }, 400);
+      return c.json(
+        {
+          error: 'Validation failed',
+          details: errors,
+        },
+        400
+      );
     }
 
     const { email, password } = validationResult.data;
-    const { accessToken, refreshToken, user } = await loginUserService(email, password);
+    const { accessToken, refreshToken, user } = await loginUserService(
+      email,
+      password
+    );
 
     console.log('Login successful:', user);
     return c.json({ accessToken, refreshToken, user }, 200);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     console.error('Login error:', errorMessage);
 
     if (errorMessage === 'User not found.') {
@@ -78,7 +93,8 @@ export const getUsers = async (c: Context) => {
     const data = await getUsersService(page, limit);
     return c.json(data, 200);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: errorMessage }, 400);
   }
 };
@@ -95,7 +111,8 @@ export const getUserById = async (c: Context) => {
     }
     return c.json(user, 200);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: errorMessage }, 400);
   }
 };
@@ -117,7 +134,8 @@ export const updateUser = async (c: Context) => {
     }
     return c.json({ message: 'User updated successfully' }, 200);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: errorMessage }, 400);
   }
 };
@@ -138,7 +156,8 @@ export const deleteUser = async (c: Context) => {
     }
     return c.json({ message: 'User deleted successfully' }, 200);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return c.json({ error: errorMessage }, 400);
   }
 };
