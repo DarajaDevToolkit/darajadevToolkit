@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import Link from 'next/link';
 
 export default function LoginForm() {
   const { login, loading } = useAuth();
@@ -79,6 +80,12 @@ export default function LoginForm() {
       >
         {loading ? 'Signing In...' : 'Sign In'}
       </Button>
+      <p className="text-sm text-center">
+        Don’t have an account?{' '}
+      <Link href="/register" className="text-green-600 underline">
+        Sign Up
+      </Link>
+      </p>
     </form>
   );
 }
