@@ -27,9 +27,15 @@
     "clean": "rm -rf */node_modules */dist */.next"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
     "autoprefixer": "^10.4.21",
+=======
+    "@eslint/plugin-kit": "^0.3.3",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+>>>>>>> 7a7bde520bde98d2d3f6ffa72330e2cf213f4bf0
     "concurrently": "^8.2.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",

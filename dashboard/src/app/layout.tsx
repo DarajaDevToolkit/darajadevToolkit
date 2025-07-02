@@ -3,8 +3,8 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
 
 export const metadata: Metadata = {
-  title: "Daraja Developer Toolkit",
-  description: "Never lose another M-Pesa webhook again",
+  title: 'Daraja Developer Toolkit',
+  description: 'Never lose another M-Pesa webhook again',
 };
 
 export default function RootLayout({
