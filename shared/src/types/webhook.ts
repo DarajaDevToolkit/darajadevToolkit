@@ -41,10 +41,10 @@ export interface MpesaResponse {
 
 // Webhook Event Types
 export type WebhookEventType =
-  | "stk_push_result"
-  | "c2b_confirmation"
-  | "c2b_validation"
-  | "timeout";
+  | 'stk_push_result'
+  | 'c2b_confirmation'
+  | 'c2b_validation'
+  | 'timeout';
 
 // Internal Webhook Processing
 export interface WebhookPayload {
@@ -53,16 +53,16 @@ export interface WebhookPayload {
   eventType: WebhookEventType;
   payload: MpesaSTKCallback | MpesaC2BCallback;
   receivedAt: Date;
-  environment: "dev" | "staging" | "production";
+  environment: 'development' | 'staging' | 'production';
 }
 
 // Delivery Status
 export type DeliveryStatus =
-  | "pending"
-  | "delivered"
-  | "failed"
-  | "retrying"
-  | "dead_letter";
+  | 'pending'
+  | 'delivered'
+  | 'failed'
+  | 'retrying'
+  | 'dead_letter';
 
 export interface DeliveryAttempt {
   id: string;
@@ -78,7 +78,7 @@ export interface DeliveryAttempt {
 // Queue-related webhook processing
 export interface WebhookQueueMetadata {
   queuedAt: Date;
-  priority: "low" | "normal" | "high" | "urgent";
+  priority: 'low' | 'normal' | 'high' | 'urgent';
   jobId?: string | number;
   retryCount: number;
   maxRetries: number;

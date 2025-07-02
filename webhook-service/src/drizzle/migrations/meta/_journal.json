@@ -5,31 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1750610420020,
-      "tag": "0000_classy_queen_noir",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1751286560533,
-      "tag": "0001_mute_giant_girl",
-      "when": 1750693458600,
-      "tag": "0001_steady_sauron",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1750845732870,
-      "tag": "0002_marvelous_firebrand",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1751202591409,
-      "tag": "0003_cultured_texas_twister",
+      "when": 1751386544421,
+      "tag": "0000_lethal_dexter_bennett",
       "breakpoints": true
     }
   ]
