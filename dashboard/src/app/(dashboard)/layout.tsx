@@ -1,4 +1,4 @@
-import { AuthProvider } from '@/context/auth-context';
+import { AuthProvider } from '@/contexts/auth-context';
 // TODO: Import DashboardNav and DashboardSidebar from the correct path
 // import { DashboardNav } from '@/components/layout/dashboard-nav'
 // import { DashboardSidebar } from '@/components/layout/dashboard-sidebar'
