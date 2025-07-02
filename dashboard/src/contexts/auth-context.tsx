@@ -9,13 +9,14 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null
-  login: (email: string, password: string) => Promise<void>
-  logout: () => void
-  signup: (email: string, password: string) => Promise<void>;
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  signup: (name: string, email: string, phoneNumber: string, password: string) => Promise<void>;
   resetPassword?: (email: string) => Promise<void>;
-  loading: boolean
+  loading: boolean;
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -64,22 +65,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/login')
   }
 
-  const signup = async (email: string, password: string) => {
+  const signup = async (
+      name: string,
+      email: string,
+      phoneNumber: string,
+      password: string
+    ) => {
     setLoading(true);
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, phoneNumber, password }),
       });
 
       if (!res.ok) {
         throw new Error('Signup failed');
       }
 
-    const userData = await res.json();
-    setUser(userData); // assume  API returns user data
-    router.push('/dashboard');
+      const userData = await res.json();
+      setUser(userData); // Assume API returns user object
+      router.push('/dashboard');
     } catch (error) {
       console.error('Signup error:', error);
       throw error;
@@ -87,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   }
+
 
   const resetPassword = async (email: string) => {
     try {

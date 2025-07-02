@@ -14,7 +14,10 @@ export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
+    name: '',
     email: '',
+    phoneCode: '+254', // default Kenya
+    phoneNumber: '',
     password: '',
     confirmPassword: '',
   });
@@ -23,16 +26,20 @@ export default function RegisterForm() {
     e.preventDefault();
     setError('');
 
-    if (!form.email || !form.password || !form.confirmPassword) {
+    const { name, email, phoneCode, phoneNumber, password, confirmPassword } = form;
+
+    if (!name || !email || !phoneNumber || !password || !confirmPassword) {
       return setError('All fields are required');
     }
 
-    if (form.password !== form.confirmPassword) {
+    if (password !== confirmPassword) {
       return setError('Passwords do not match');
     }
 
+    const fullPhone = phoneCode + phoneNumber;
+
     try {
-      await signup(form.email, form.password); // Redirect handled in context
+      await signup(name, email, fullPhone, password);
     } catch (err) {
       setError('Registration failed. Try again.');
     }
@@ -53,6 +60,16 @@ export default function RegisterForm() {
       )}
 
       <div className="space-y-2">
+        <Label>Full Name</Label>
+        <Input
+          type="text"
+          placeholder="Enter your name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+      </div>
+
+      <div className="space-y-2">
         <Label>Email</Label>
         <Input
           type="email"
@@ -60,6 +77,30 @@ export default function RegisterForm() {
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Phone Number</Label>
+        <div className="flex gap-2">
+          <select
+            className="border rounded px-2 py-2 bg-white text-sm w-24"
+            value={form.phoneCode}
+            onChange={(e) => setForm({ ...form, phoneCode: e.target.value })}
+          >
+            <option value="+254">+254 🇰🇪</option>
+            <option value="+256">+256 🇺🇬</option>
+            <option value="+255">+255 🇹🇿</option>
+            <option value="+250">+250 🇷🇼</option>
+            <option value="+1">+1 🇺🇸</option>
+            {/* Add more codes as needed */}
+          </select>
+          <Input
+            type="tel"
+            placeholder="712345678"
+            value={form.phoneNumber}
+            onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
+          />
+        </div>
       </div>
 
       <div className="space-y-2 relative">
@@ -98,13 +139,13 @@ export default function RegisterForm() {
       >
         {loading ? 'Registering...' : 'Sign Up'}
       </Button>
+
       <p className="text-sm text-center">
         Already have an account?{' '}
         <Link href="/login" className="text-green-600 underline">
-        Login
+          Login
         </Link>
       </p>
     </form>
-    
   );
 }

@@ -6,9 +6,6 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen flex">
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-green-600 via-green-700 to-green-800 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img src="/login.svg" alt="illustration" className="w-full h-full object-cover" />
-        </div>
         <div className="relative z-10 flex flex-col justify-center items-start p-12 text-white">
           <div className="max-w-md bg-black bg-opacity-35 backdrop-blur-sm rounded-lg p-8">
             <h1 className="text-5xl font-bold mb-6">Daraja Dev Toolkit</h1>
