@@ -11,10 +11,8 @@ webhookRoutes.get('/health', c => webhookController.healthCheck(c));
 // Queue health check endpoint (public)
 webhookRoutes.get('/health/queue', c => webhookController.queueHealthCheck(c));
 
-// Main webhook endpoint - receives M-Pesa callbacks (requires API key)
-webhookRoutes.post('/webhook/:userId', authenticateAPIKey, c =>
-  webhookController.handleWebhook(c)
-);
+// Main webhook endpoint - receives M-Pesa callbacks (public for M-PESA)
+webhookRoutes.post('/webhook/:userId', c => webhookController.handleWebhook(c));
 
 // Test endpoint for development (requires API key)
 webhookRoutes.post('/test/:userId', authenticateAPIKey, c =>
