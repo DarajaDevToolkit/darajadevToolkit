@@ -153,6 +153,7 @@ webhook-service/src/testfeatures.http
 FLOW.md
 EXECUTIVE-SUMMARY.md
 TECHNICAL-FLOW.md
+webhook-service/src/testfeatures.http
 
 # Package-specific ignores (keep these for explicit clarity)
 dashboard/.next/

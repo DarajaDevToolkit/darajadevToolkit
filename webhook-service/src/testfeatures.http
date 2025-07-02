@@ -339,4 +339,4 @@ Content-Type: application/json
 # 2. Run 2.1 (Login) -> Copy accessToken, refreshToken, userId
 # 3. Update variables at top of file
 # 4. Run tests in order to verify all functionality
-# 5. Check server logs for detailed error messages
+# 5. Check server logs for detailed error message
