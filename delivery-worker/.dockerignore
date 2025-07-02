@@ -1,0 +1,22 @@
+# Ignore node_modules and Bun cache
+node_modules/
+bun.lockb
+
+# Ignore logs
+*.log
+
+# Ignore test output
+coverage/
+
+# Ignore local config and editor files
+.env
+*.DS_Store
+*.vscode/
+
+# Ignore build artifacts
+dist/
+build/
+
+# Ignore git
+.git
+.gitignore

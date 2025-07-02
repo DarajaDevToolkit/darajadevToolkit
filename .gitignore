@@ -6,7 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -113,8 +112,7 @@ pids/
 
 # Bun
 .bun
-bun.lockb
-bun.lock
+
 
 # Temporary files
 *.tmp
