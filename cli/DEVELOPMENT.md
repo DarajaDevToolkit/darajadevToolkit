@@ -61,7 +61,7 @@ daraja test --help
 - **Rich**: Beautiful terminal output with colors, tables, progress bars
 - **Requests**: HTTP client for API calls
 - **Pydantic**: Data validation and parsing
-- **pytest**: Testing framework
+- **pytest**: Testing framework.
 
 ### Command Structure
 
