@@ -259,7 +259,7 @@ pyinstaller --onefile src/daraja_cli/main.py
 - **CLI Lead**: Architecture decisions, API integration
 - **Command Developers**: Individual command implementation
 - **UX Developer**: Rich formatting, user experience
-- **Testing Developer**: Test coverage, validation
+- **Testing Developer**: Test coverage, validation.
 
 ### Integration Points
 
