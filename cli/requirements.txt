@@ -33,4 +33,4 @@ tomli==2.2.1
 typing-inspection==0.4.1
 typing_extensions==4.14.0
 urllib3==2.5.0
-78.1.1=80.9.0
+setuptools==80.9.0
