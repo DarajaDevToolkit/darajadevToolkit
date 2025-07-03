@@ -58,8 +58,8 @@ chmod +x dev.sh
 
 ### Key Technologies
 
-- **Bun** - Fast webhook service runtime
-- **Next.js** - Modern React framework
+- **Bun** - Fast webhook service runtime.
+- **Next.js** - Modern React framework.
 - **TypeScript** - Type safety across all services
 - **Redis** - Queue management
 - **PostgreSQL** - Data persistence
