@@ -1,5 +1,5 @@
 {
-  "id": "e1da7980-35ae-48ae-8eee-9c957b229bc0",
+  "id": "7a3df665-98a7-4a55-b05f-be86e5d942dc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -500,6 +500,18 @@
           "primaryKey": false,
           "notNull": false,
           "default": true
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",

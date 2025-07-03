@@ -7,6 +7,9 @@ import {
   getUserById,
   updateUser,
   deleteUser,
+  verifyResetTokenController,
+  forgotPassword,
+  resetPasswordController,
 } from '../controllers/auth.controller';
 import {
   authenticateJWT,
@@ -43,6 +46,9 @@ const authRouter = new Hono();
 authRouter.post('/register', registerUserController);
 authRouter.post('/login', rateLimit, loginUserController);
 authRouter.post('/refresh', refreshTokenController);
+authRouter.post('/forgot-password',rateLimit, forgotPassword);
+authRouter.get('/verify/:token',verifyResetTokenController);// verify token
+authRouter.post('/reset-password', resetPasswordController); //change password
 
 // Protected endpoints (require authentication)
 authRouter.get('/users', authenticateJWT, requireAdmin, getUsers);

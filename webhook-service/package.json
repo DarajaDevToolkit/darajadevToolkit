@@ -14,19 +14,21 @@
     "seed": "bun run src/drizzle/seed.ts"
   },
   "dependencies": {
-    "bullmq": "^5.56.0",
     "bcryptjs": "^3.0.2",
+    "bullmq": "^5.56.0",
     "dotenv": "^16.5.0",
     "drizzle-kit": "^0.31.1",
     "drizzle-orm": "^0.44.2",
     "hono": "^4.8.3",
     "jose": "^6.0.11",
+    "nodemailer": "^7.0.4",
     "pg": "^8.16.2",
     "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^22",
+    "@types/nodemailer": "^6.4.17",
     "@types/pg": "^8.15.4"
   },
   "peerDependencies": {
