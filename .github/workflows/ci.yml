@@ -273,40 +273,40 @@ jobs:
     runs-on: ubuntu-latest
     needs: [detect-changes, build-and-push-docker]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/CI/CD-Pipeline'
+    strategy:
+      matrix:
+        service:
+          - dashboard
+          - webhook-service
+          - cli
+          - delivery-worker
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Trivy
-        run: |
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.2_Linux-64bit.tar.gz
-          tar -zxvf trivy_0.50.2_Linux-64bit.tar.gz
-          sudo mv trivy /usr/local/bin/
 
       - name: Convert repository owner to lowercase
         id: repo_owner
         run: |
           echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
-      - name: Trivy scan dashboard image
-        if: needs.detect-changes.outputs.dashboard_changed == 'true'
+      - name: Set image ref
+        id: image
         run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL ghcr.io/${{ steps.repo_owner.outputs.owner }}/darajadev-dashboard:latest
+          echo "ref=ghcr.io/${{ steps.repo_owner.outputs.owner }}/darajadev-${{ matrix.service }}:latest" >> $GITHUB_OUTPUT
 
-      - name: Trivy scan webhook-service image
-        if: needs.detect-changes.outputs.webhook_service_changed == 'true'
-        run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL ghcr.io/${{ steps.repo_owner.outputs.owner }}/darajadev-webhook-service:latest
-
-      - name: Trivy scan cli image
-        if: needs.detect-changes.outputs.cli_changed == 'true'
-        run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL ghcr.io/${{ steps.repo_owner.outputs.owner }}/darajadev-cli:latest
-
-      - name: Trivy scan delivery-worker image
-        if: needs.detect-changes.outputs.delivery_worker_changed == 'true'
-        run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL ghcr.io/${{ steps.repo_owner.outputs.owner }}/darajadev-delivery-worker:latest
-
+      - name: Run Trivy vulnerability scanner for ${{ matrix.service }}
+        if: |
+          (matrix.service == 'dashboard' && needs.detect-changes.outputs.dashboard_changed == 'true') ||
+          (matrix.service == 'webhook-service' && needs.detect-changes.outputs.webhook_service_changed == 'true') ||
+          (matrix.service == 'cli' && needs.detect-changes.outputs.cli_changed == 'true') ||
+          (matrix.service == 'delivery-worker' && needs.detect-changes.outputs.delivery_worker_changed == 'true')
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: '${{ steps.image.outputs.ref }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
   # sonarqube-scan:
   #   runs-on: ubuntu-latest
   #   needs: [test]
