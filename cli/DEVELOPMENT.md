@@ -57,7 +57,7 @@ daraja test --help
 
 ### Key Technologies Used
 
-- **Click**: Modern CLI framework (better than argparse)
+- **Click**: Modern CLI framework (better than argparse).
 - **Rich**: Beautiful terminal output with colors, tables, progress bars.
 - **Requests**: HTTP client for API calls.
 - **Pydantic**: Data validation and parsing.

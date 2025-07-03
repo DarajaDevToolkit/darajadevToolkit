@@ -16,6 +16,7 @@ COPY ./cli /app
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
     pip install -e .
 
 # Set entrypoint (adjust `daraja_cli.main` if needed)
