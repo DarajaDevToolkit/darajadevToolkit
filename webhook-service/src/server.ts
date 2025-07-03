@@ -25,8 +25,10 @@ app.use(cors({
 app.use("*", errorHandler);
 app.use("*", requestLogger);
 // app.use("*", cors());
-app.use("*", ipValidator);
 app.use("*", logger());
+
+// Apply IP validation only to M-Pesa webhook routes
+webhookRoutes.use("*", ipValidator);
 
 // Routes
 app.route("/", webhookRoutes);
