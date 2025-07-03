@@ -3,21 +3,19 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies for building Python packages (e.g., for psycopg2, numpy, etc.)
+# Install system dependencies for building Python packages and Git
 RUN apt-get update && apt-get install -y \
     build-essential \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy only the CLI project and shared packages (assuming monorepo structure)
+# Copy CLI source and optionally shared modules
 COPY ./cli /app
-
-# Optionally copy shared modules if CLI depends on them
-# COPY ./shared /app/shared
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
     pip install -e .
 
-# Set entrypoint (adjust `daraja_cli.main` if needed)
+# Set entrypoint
 ENTRYPOINT ["python", "-m", "daraja_cli.main"]
