@@ -278,8 +278,8 @@ jobs:
 
       - name: Install Trivy
         run: |
-          sudo apt-get update && sudo apt-get install -y wget
-          wget -qO- https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.2_Linux-64bit.tar.gz | tar zxvf -
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.2_Linux-64bit.tar.gz
+          tar -zxvf trivy_0.50.2_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
 
       - name: Convert repository owner to lowercase
