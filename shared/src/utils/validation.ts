@@ -4,6 +4,7 @@ import {
   MpesaC2BCallback,
   WebhookEventType,
 } from "../types/webhook";
+import CIDR from "ip-cidr";
 
 export function validateMpesaSTKPayload(
   payload: any
@@ -45,41 +46,37 @@ export function detectWebhookType(payload: any): WebhookEventType | null {
   return null;
 }
 
-// Known M-Pesa IP ranges (update as needed)
-export const MPESA_IP_RANGES = [
-  "196.201.214.0/24",
-  "196.201.215.0/24",
-  "196.201.216.0/24",
-  "196.201.217.0/24",
-];
+
+// load from ENV or use defaults
+export const MPESA_IP_RANGES = process.env.MPESA_IP_RANGES
+  ? process.env.MPESA_IP_RANGES.split(",").map((r) => r.trim()).filter(Boolean)
+  : [];
 
 // npm ip range check - its a package to check if an IP is in a range, but you can implement your own logic
 
+/**
+ * Returns true if `ip` belongs to any configured M-Pesa CIDR.
+ * In development, if strictMode=false, always allow.
+ */
 export function isValidMpesaIP(
   ip: string,
   strictMode: boolean = false
 ): boolean {
-  // For development, allow bypass
-  if (process.env.NODE_ENV === "development" && !strictMode) {
+  // In sandbox or non-production (MPESA_ENV), allow bypass when not strict
+  const env = process.env.MPESA_ENV || process.env.NODE_ENV;
+  if (env !== "production" && !strictMode) {
     return true;
   }
 
-  // TODO: Implement proper IP range checking
-  // For now, just check if it's not localhost
-  return !ip.includes("127.0.0.1") && !ip.includes("::1");
+  for (const range of MPESA_IP_RANGES) {
+    try {
+      if (new CIDR(range).contains(ip)) {
+        return true;
+      }
+    } catch (err) {
+      console.error(`Invalid CIDR in MPESA_IP_RANGES: ${range}`, err);
+    }
+  }
+  return false;
 }
 
-// Here is an Idea of how to implement the above
-// function validateMpesaIP(req) {
-//   const clientIP = req.ip
-
-//   // In production, validate IP
-//   if (process.env.MPESA_ENV === 'production') {
-//     return MPESA_PRODUCTION_IPS.some(range =>
-//       ipInRange(clientIP, range)
-//     )
-//   }
-
-//   // In sandbox, allow any IP
-//   return true
-// }
