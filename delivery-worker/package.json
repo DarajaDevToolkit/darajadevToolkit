@@ -17,5 +17,8 @@
     "@types/node": "^22",
     "tsx": "^4.0.0",
     "typescript": "^5"
+  },
+  "resolutions": {
+  "cross-spawn": "^7.0.6"
   }
 }
