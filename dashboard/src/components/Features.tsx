@@ -1,4 +1,3 @@
-'use client';
 import React from 'react';
 import Image from 'next/image';
 import {
@@ -59,7 +58,7 @@ export default function FeaturesSection() {
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             From <span className="font-semibold">development</span> to{' '}
-            <span className="font-semibold">production</span>, we've got you
+            <span className="font-semibold">production</span>, we&#39;ve got you
             covered with enterprise-grade tools and infrastructure.
           </p>
         </div>
@@ -90,10 +89,15 @@ export default function FeaturesSection() {
           </div>
           {/* Feature Nodes */}
           {features.map((feature, index) => {
-            const angle = (index / features.length) * 360;
+            // const angle = (index / features.length) * 360;
             const radius = 275; // Orbit radius in pixels
-            const x = Math.cos((angle * Math.PI) / 180) * radius;
-            const y = Math.sin((angle * Math.PI) / 180) * radius;
+            const rawAngle = (index / features.length) * 360;
+            const rawX = Math.cos((rawAngle * Math.PI) / 180) * radius;
+            const rawY = Math.sin((rawAngle * Math.PI) / 180) * radius;
+
+            // then stabilize them
+            const x = Math.round(rawX); // nearest pixel
+            const y = Math.round(rawY);
 
             return (
               <div
