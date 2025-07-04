@@ -22,16 +22,16 @@ docker_build_and_push() {
 #     -t "$GHCR_REPO/darajadev-webhook-service:latest" . || return 1
 #   docker push "$GHCR_REPO/darajadev-webhook-service:latest" || return 1
 
-  echo "🐳 Building and pushing dashboard image..."
-  # docker builder prune --all
-  docker build -f dashboard/Dockerfile \
-    -t "$GHCR_REPO/darajadev-dashboard:latest" . || return 1
-  docker push "$GHCR_REPO/darajadev-dashboard:latest" || return 1
+  # echo "🐳 Building and pushing dashboard image..."
+  # # docker builder prune --all
+  # docker build -f dashboard/Dockerfile \
+  #   -t "$GHCR_REPO/darajadev-dashboard:latest" . || return 1
+  # docker push "$GHCR_REPO/darajadev-dashboard:latest" || return 1
 
-#   echo "🐳 Building and pushing delivery-worker image..."
-#   docker build -f delivery-worker/Dockerfile \
-#     -t "$GHCR_REPO/darajadev-delivery-worker:latest" . || return 1
-#   docker push "$GHCR_REPO/darajadev-delivery-worker:latest" || return 1
+  echo "🐳 Building and pushing delivery-worker image..."
+  docker build -f delivery-worker/Dockerfile \
+    -t "$GHCR_REPO/darajadev-delivery-worker:latest" . || return 1
+  docker push "$GHCR_REPO/darajadev-delivery-worker:latest" || return 1
 
 #   echo "🐳 Building and pushing CLI image..."
 #   docker build -f cli/Dockerfile \

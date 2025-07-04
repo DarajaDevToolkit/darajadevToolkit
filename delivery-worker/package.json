@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch src/worker.ts",
-    "build": "bun build src/worker.ts --outdir ./dist",
+        "build": "bun build src/worker.ts --outdir ./dist --target=node",
     "start": "bun run src/worker.ts"
   },
   "dependencies": {
