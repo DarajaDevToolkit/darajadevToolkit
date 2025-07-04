@@ -185,16 +185,19 @@ jobs:
 
       - name: Install Trivy
         uses: aquasecurity/trivy-action@master
+        with:
+          version: latest
 
       - name: Scan workspaces and generate reports
         run: |
-          set -e
+          set -euo pipefail
           mkdir -p trivy-reports
           has_issues=0
 
           for dir in dashboard webhook-service cli delivery-worker; do
             echo "🔍 Scanning $dir..."
             trivy fs "$dir" \
+              --scanners vuln \
               --severity CRITICAL,HIGH \
               --format json \
               --output "trivy-reports/${dir//\//_}-report.json" \
