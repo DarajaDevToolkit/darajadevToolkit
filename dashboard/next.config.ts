@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "standalone", // 👈 Required for distroless Docker images
 };
 
 export default nextConfig;
