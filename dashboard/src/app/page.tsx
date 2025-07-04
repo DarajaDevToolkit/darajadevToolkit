@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   ArrowRight,
   Users,
@@ -16,23 +16,7 @@ import FeaturesSection from '@/components/Features';
 import Image from 'next/image';
 
 export default function HomePage() {
-  const [isVisible, setIsVisible] = useState({});
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsVisible((prev) => ({ ...prev, [entry.target.id]: true }));
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    document.querySelectorAll('[id]').forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
+  // Removed unused isVisible state and related useEffect
 
   const stats = [
     {
@@ -74,7 +58,7 @@ export default function HomePage() {
         {/* Floating Code Snippets */}
         <div className="absolute top-24 left-10 hidden lg:block animate-float">
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 font-mono text-xs text-gray-300 shadow-lg">
-            <div className="text-green-400">// daraja-kit --init</div>
+            <div className="text-green-400">{'// daraja-kit --init'}</div>
             <div>$ npm install -g daraja-kit</div>
             <div className="text-blue-400">$ daraja-kit init my-app</div>
             <div className="text-green-400">✓ Project ready!</div>
@@ -86,10 +70,10 @@ export default function HomePage() {
           style={{ animationDelay: '2s' }}
         >
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 font-mono text-xs text-gray-300 shadow-lg">
-            <div className="text-purple-400">// Smart Webhook Proxy</div>
-            <div>proxy.routeTo('dev')</div>
+            <div className="text-purple-400">{'// Smart Webhook Proxy'}</div>
+            <div>proxy.routeTo(&#39;dev&#39;)</div>
             <div className="text-gray-500">{`// Forwards to http://localhost:3000`}</div>
-            <div>proxy.routeTo('prod')</div>
+            <div>proxy.routeTo(&#39;prod&#39;)</div>
             <div className="text-gray-500">{`// Forwards to https://api.myapp.com`}</div>
           </div>
         </div>
