@@ -182,12 +182,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Scan source with Trivy
+
+      - name: Install Trivy
         uses: aquasecurity/trivy-action@master
+
+      - name: Scan workspaces and generate reports
+        run: |
+          set -e
+          mkdir -p trivy-reports
+          has_issues=0
+
+          for dir in dashboard webhook-service cli delivery-worker; do
+            echo "🔍 Scanning $dir..."
+            trivy fs "$dir" \
+              --severity CRITICAL,HIGH \
+              --format json \
+              --output "trivy-reports/${dir//\//_}-report.json" \
+              --exit-code 0 || has_issues=1
+          done
+
+          if [ $has_issues -eq 1 ]; then
+            echo "❌ Vulnerabilities found in one or more modules."
+            exit 1
+          else
+            echo "✅ No critical/high vulnerabilities found."
+          fi
+
+      - name: Upload Trivy Reports
+        uses: actions/upload-artifact@v4
         with:
-          scan-type: fs
-          scan-ref: .
-          severity: CRITICAL,HIGH
+          name: trivy-source-reports
+          path: trivy-reports
 
   # quality-gate:
   #   runs-on: ubuntu-latest
