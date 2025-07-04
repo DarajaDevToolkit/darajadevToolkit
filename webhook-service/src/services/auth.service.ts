@@ -5,6 +5,7 @@ import { SignJWT, jwtVerify } from 'jose';
 import crypto from 'crypto';
 import type { z } from 'zod';
 import type { registerUserValidator } from '../validators/user.validators';
+import type { Context } from 'hono/jsx';
 
 // Token expiry durations (in seconds) ,<= later store this in the  .env file
 const ACCESS_TOKEN_EXPIRY = 15 * 60; // 15 minutes
@@ -26,7 +27,6 @@ export const registerUserService = async (userData: RegisterUserData) => {
     if (existing.length > 0) {
       throw new Error('User already exists');
     }
-
     // Hash password with Bun's built-in password hashing
     const passwordHash = await Bun.password.hash(userData.password);
     // Generate a long, random API key (UUIDv4)
@@ -42,6 +42,8 @@ export const registerUserService = async (userData: RegisterUserData) => {
         apiKey: apiKey,
         isActive: true,
         role: userData.role || 'user',
+        token: "",
+        expiresAt: new Date(),
       })
       .returning();
 
@@ -160,6 +162,42 @@ export const refreshTokenService = async (refreshToken: string) => {
     );
   }
 };
+//############createResetTokenService#############################################################
+export const createResetTokenService = async ({
+  userId,
+  token,
+  expiresAt,
+}: {
+  userId: string;
+  token: string;
+  expiresAt: Date;
+}) => {
+  // Insert new token
+  await db.update(users).set({ token, expiresAt }).where(eq(users.id, userId));
+};
+//####When the user clicks the reset link, you’ll want to verify the token and expiry:#####
+export const verifyResetTokenService = async (token: string) => {
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.token, token));
+  if (!user || user.expiresAt < new Date()) {
+    throw new Error('Invalid or expired token');
+  }
+  return user.id;
+};
+
+//#############updateUserPasswordService######################################################
+export const updateUserPasswordService = async (userId: string, newPassword: string) => {
+  const passwordHash = await Bun.password.hash(newPassword);
+  const [updatedUser] = await db
+    .update(users)
+    .set({ passwordHash, token: undefined, expiresAt: undefined })
+    .where(eq(users.id, userId))
+    .returning();
+  if (!updatedUser) throw new Error('User not found or password not updated');
+  return updatedUser;
+};
 
 // Get all users with pagination
 export const getUsersService = async (
@@ -217,6 +255,21 @@ export const getUserByIdService = async (userId: string) => {
     );
   }
 };
+//getUserByEmail
+export const getUserByEmailService = async (email: string) => {
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .execute();
+
+  if (result.length === 0) {
+    throw new Error("User not found");
+  }
+
+  return result[0];
+
+}
 
 // Update user details
 export const updateUserService = async (
