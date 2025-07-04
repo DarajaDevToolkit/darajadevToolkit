@@ -11,6 +11,7 @@ import db from "./drizzle/db";
 import { sql } from "drizzle-orm";
 import authRouter from "./routes/auth.routes";
 import settingsRoutes from "./routes/settings.routes";
+import { rateLimit } from "./middleware/rateLimitMiddleware";
 import 'dotenv/config';
 
 const app = new Hono();
@@ -28,7 +29,7 @@ app.use("*", requestLogger);
 app.use("*", logger());
 
 // Apply IP validation only to M-Pesa webhook routes
-webhookRoutes.use("*", ipValidator);
+webhookRoutes.use("*", rateLimit, ipValidator);
 
 // Routes
 app.route("/", webhookRoutes);
