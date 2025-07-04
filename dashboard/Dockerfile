@@ -18,7 +18,7 @@ RUN npm ci
 COPY dashboard ./dashboard
 
 # Build dashboard app from workspace
-RUN npm run build -w @daraja-toolkit/dashboard
+RUN npm run build -w ./dashboard
 
 # ------------ Runtime Stage ------------
 FROM node:20-alpine AS runner
@@ -32,7 +32,6 @@ COPY --from=builder /app/dashboard/node_modules ./dashboard/node_modules
 # Copy dashboard build and config
 COPY --from=builder /app/dashboard/.next ./dashboard/.next
 COPY --from=builder /app/dashboard/public ./dashboard/public
-COPY --from=builder /app/dashboard/next.config.js ./dashboard/
 COPY --from=builder /app/dashboard/package.json ./dashboard/package.json
 
 # Use dashboard directory as entrypoint context
