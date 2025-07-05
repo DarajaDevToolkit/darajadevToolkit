@@ -24,7 +24,8 @@
     "ci:build": "npm run build",
     "ci:test": "npm run test",
     "ci:lint": "npm run lint",
-    "clean": "rm -rf */node_modules */dist */.next"
+    "clean": "rm -rf */node_modules */dist */.next",
+    "preinstall": "npx npm-force-resolutions"
   },
   "devDependencies": {
     "@eslint/plugin-kit": "^0.3.3",
@@ -37,9 +38,13 @@
     "typescript": "^5.0.0"
   },
   "resolutions": {
-  "@babel/runtime": "7.27.6"
-},
+    "@babel/runtime": "7.27.6",
+    "esbuild": "0.18.20"
+  },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "esbuild": "0.18.20"
   }
 }
