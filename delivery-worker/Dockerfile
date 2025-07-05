@@ -1,28 +1,41 @@
-# Stage 1: Builder
-# Stage 1: Builder
+# ------------ Build Stage ------------
 FROM node:20-slim AS builder
+
 WORKDIR /app
 
-# Copy full monorepo (adjust as needed)
+# Install curl and Bun
+
+# Install curl and unzip (needed for Bun)
+RUN apt-get update && apt-get install -y curl unzip \
+  && curl -fsSL https://bun.sh/install | bash \
+  && mv /root/.bun/bin/bun /usr/local/bin/ \
+  && apt-get remove -y curl unzip && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
+# Copy only necessary files
+COPY package*.json ./
+COPY delivery-worker/package.json ./delivery-worker/
+COPY shared/package.json ./shared/
+
+# Copy the rest of the source
 COPY . .
 
-# Install all workspaces (needed to resolve local deps like @daraja-toolkit/shared)
+# Install deps and build delivery-worker
 RUN npm install
-
-# Build the specific workspace
 RUN npm run --workspace=delivery-worker build
 
-# Stage 2: Runtime image
-FROM node:20-slim
+# ------------ Runtime Stage using Distroless ------------
+FROM gcr.io/distroless/nodejs20-debian12
+
 WORKDIR /app
 
-# Copy only what's needed (runtime-only)
-COPY . .
+# Copy the compiled output and dependencies
+COPY --from=builder /app/delivery-worker/dist ./delivery-worker/dist
+COPY --from=builder /app/delivery-worker/node_modules ./delivery-worker/node_modules
+COPY --from=builder /app/delivery-worker/package.json ./delivery-worker/package.json
 
-# Install prod deps for this workspace only
-RUN npm install --workspace=delivery-worker --omit=dev
+# Required to find node_modules
+ENV NODE_PATH=/app/delivery-worker/node_modules
 
-# Set the working dir to delivery-worker
 WORKDIR /app/delivery-worker
 
-CMD ["node", "dist/worker.js"]
+CMD ["dist/worker.js"]

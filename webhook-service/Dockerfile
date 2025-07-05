@@ -1,13 +1,12 @@
 # ------------ Build & Runtime Stage (Bun handles both) ------------
 FROM oven/bun:1
 
-# Use monorepo root as working directory
 WORKDIR /app
 
-# Copy root-level package files
+# Copy root-level bun files
 COPY package.json bun.lock ./
 
-# Copy workspace packages' manifests for cache efficiency
+# Copy workspace manifests
 COPY webhook-service/package.json ./webhook-service/
 COPY shared/package.json ./shared/
 
@@ -18,13 +17,11 @@ COPY delivery-worker ./delivery-worker
 COPY shared ./shared
 COPY webhook-service ./webhook-service
 
-
-# Install all dependencies (Bun will link workspace packages correctly)
+# ✅ Bun install (no npm-force-resolutions)
 RUN bun install
-# Set working directory to the service
+
 WORKDIR /app/webhook-service
 
 EXPOSE 3000
 
-# Start the service
 CMD ["bun", "run", "start"]

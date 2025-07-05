@@ -1,42 +1,43 @@
 # ------------ Build Stage ------------
-FROM node:20-alpine AS builder
+FROM node:20-bookworm AS builder
 
 WORKDIR /app
 
-# Copy monorepo root dependencies and workspace packages
-COPY package.json package-lock.json* ./
+# Copy monorepo-level package metadata
+COPY package*.json ./
 COPY dashboard/package.json ./dashboard/
 COPY shared/package.json ./shared/
 
-# Copy source code for shared packages
+# Copy shared package source early for better caching
 COPY shared ./shared
 
-# Install all dependencies (uses npm workspaces)
+# Install only production and workspace deps
 RUN npm ci
 
-# Copy dashboard source AFTER install for better caching
+# Copy dashboard source and build it
 COPY dashboard ./dashboard
+WORKDIR /app/dashboard
 
-# Build dashboard app from workspace
-RUN npm run build -w @daraja-toolkit/dashboard
+# Build the Next.js app
+RUN npm run build
 
-# ------------ Runtime Stage ------------
-FROM node:20-alpine AS runner
+# Optional: prune devDependencies for smaller runtime
+RUN npm prune --omit=dev
+
+# ------------ Runtime Stage (Distroless) ------------
+FROM gcr.io/distroless/nodejs20-debian12
 
 WORKDIR /app
 
-# Copy pruned node_modules (incl. workspace deps)
+# Copy the built .next folder and public assets
+COPY --from=builder /app/dashboard/.next ./.next
+COPY --from=builder /app/dashboard/public ./public
+COPY --from=builder /app/dashboard/package.json ./package.json
+
+# Copy pruned production node_modules
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dashboard/node_modules ./dashboard/node_modules
-
-# Copy dashboard build and config
-COPY --from=builder /app/dashboard/.next ./dashboard/.next
-COPY --from=builder /app/dashboard/public ./dashboard/public
-COPY --from=builder /app/dashboard/next.config.js ./dashboard/
-COPY --from=builder /app/dashboard/package.json ./dashboard/package.json
-
-# Use dashboard directory as entrypoint context
-WORKDIR /app/dashboard
 
 EXPOSE 3000
-CMD ["npm", "start"]
+
+# Use the standalone server.js for Next.js
+CMD ["node", ".next/standalone/server.js"]

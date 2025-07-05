@@ -36,7 +36,15 @@
     "prettier": "^3.0.0",
     "typescript": "^5.0.0"
   },
+  "resolutions": {
+    "@babel/runtime": "7.27.6",
+     "esbuild": "0.21.4"
+
+  },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "overrides": {
+    "esbuild": "0.21.4"
   }
 }

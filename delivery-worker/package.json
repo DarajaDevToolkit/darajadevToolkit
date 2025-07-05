@@ -5,16 +5,20 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch src/worker.ts",
-    "build": "bun build src/worker.ts --outdir ./dist",
+        "build": "bun build src/worker.ts --outdir ./dist --target=node",
     "start": "bun run src/worker.ts"
   },
   "dependencies": {
     "axios": "^1.6.0",
-    "bullmq": "^5.56.0"
+    "bullmq": "^5.56.0",
+    "cross-spawn": "^7.0.6"
   },
   "devDependencies": {
     "@types/node": "^22",
     "tsx": "^4.0.0",
     "typescript": "^5"
+  },
+  "resolutions": {
+  "cross-spawn": "^7.0.6"
   }
 }
