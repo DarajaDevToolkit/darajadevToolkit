@@ -17,10 +17,10 @@ docker_build_and_push() {
 
   # Monorepo root should be context for all builds
  
-  echo "🐳 Building and pushing webhook-service image..."
-  docker build -f webhook-service/Dockerfile \
-    -t "$GHCR_REPO/darajadev-webhook-service:latest" . || return 1
-  docker push "$GHCR_REPO/darajadev-webhook-service:latest" || return 1
+  # echo "🐳 Building and pushing webhook-service image..."
+  # docker build -f webhook-service/Dockerfile \
+  #   -t "$GHCR_REPO/darajadev-webhook-service:latest" . || return 1
+  # docker push "$GHCR_REPO/darajadev-webhook-service:latest" || return 1
 
   # echo "🐳 Building and pushing dashboard image..."
   # # docker builder prune --all
@@ -33,10 +33,10 @@ docker_build_and_push() {
   #   -t "$GHCR_REPO/darajadev-delivery-worker:latest" . || return 1
   # docker push "$GHCR_REPO/darajadev-delivery-worker:latest" || return 1
 
-#   echo "🐳 Building and pushing CLI image..."
-#   docker build -f cli/Dockerfile \
-#     -t "$GHCR_REPO/darajadev-cli:latest" . || return 1
-#   docker push "$GHCR_REPO/darajadev-cli:latest" || return 1
+  echo "🐳 Building and pushing CLI image..."
+  docker build -f cli/Dockerfile \
+    -t "$GHCR_REPO/darajadev-cli:latest" . || return 1
+  docker push "$GHCR_REPO/darajadev-cli:latest" || return 1
 
   echo "✅ Docker images built and pushed to ghcr.io successfully."
 }
