@@ -337,12 +337,12 @@ jobs:
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
+      - name: Download Trivy HTML report template
+        run: |
+          mkdir -p contrib
+          curl -sSL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -o contrib/html.tpl
+
       - name: Run Trivy vulnerability scanner for ${{ matrix.service }}
-        if: |
-          (matrix.service == 'dashboard' && needs.detect-changes.outputs.dashboard_changed == 'true') ||
-          (matrix.service == 'webhook-service' && needs.detect-changes.outputs.webhook_service_changed == 'true') ||
-          (matrix.service == 'cli' && needs.detect-changes.outputs.cli_changed == 'true') ||
-          (matrix.service == 'delivery-worker' && needs.detect-changes.outputs.delivery_worker_changed == 'true')
         run: |
           IMAGE="ghcr.io/${{ steps.repo_owner.outputs.owner }}/darajadev-${{ matrix.service }}:latest"
           REPORT_HTML="trivy-${{ matrix.service }}.html"
@@ -350,20 +350,13 @@ jobs:
           echo "🔍 Scanning image $IMAGE and generating HTML report..."
           trivy image "$IMAGE" \
             --format template \
-            --template "@/contrib/html.tpl" \
+            --template "@contrib/html.tpl" \
             --output "$REPORT_HTML" \
             --exit-code 0 \
             --ignore-unfixed \
-            --vuln-type os,library \
-            --severity CRITICAL,HIGH \
-            --skip-dirs /app/node_modules/@esbuild
+            --severity CRITICAL,HIGH
 
       - name: Upload HTML Trivy report for ${{ matrix.service }}
-        if: |
-          (matrix.service == 'dashboard' && needs.detect-changes.outputs.dashboard_changed == 'true') ||
-          (matrix.service == 'webhook-service' && needs.detect-changes.outputs.webhook_service_changed == 'true') ||
-          (matrix.service == 'cli' && needs.detect-changes.outputs.cli_changed == 'true') ||
-          (matrix.service == 'delivery-worker' && needs.detect-changes.outputs.delivery_worker_changed == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: trivy-image-${{ matrix.service }}-html
