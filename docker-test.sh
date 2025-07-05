@@ -17,16 +17,16 @@ docker_build_and_push() {
 
   # Monorepo root should be context for all builds
  
-#   echo "🐳 Building and pushing webhook-service image..."
-#   docker build -f webhook-service/Dockerfile \
-#     -t "$GHCR_REPO/darajadev-webhook-service:latest" . || return 1
-#   docker push "$GHCR_REPO/darajadev-webhook-service:latest" || return 1
+  echo "🐳 Building and pushing webhook-service image..."
+  docker build -f webhook-service/Dockerfile \
+    -t "$GHCR_REPO/darajadev-webhook-service:latest" . || return 1
+  docker push "$GHCR_REPO/darajadev-webhook-service:latest" || return 1
 
-  echo "🐳 Building and pushing dashboard image..."
-  # docker builder prune --all
-  docker build -f dashboard/Dockerfile \
-    -t "$GHCR_REPO/darajadev-dashboard:latest" . || return 1
-  docker push "$GHCR_REPO/darajadev-dashboard:latest" || return 1
+  # echo "🐳 Building and pushing dashboard image..."
+  # # docker builder prune --all
+  # docker build -f dashboard/Dockerfile \
+  #   -t "$GHCR_REPO/darajadev-dashboard:latest" . || return 1
+  # docker push "$GHCR_REPO/darajadev-dashboard:latest" || return 1
 
   # echo "🐳 Building and pushing delivery-worker image..."
   # docker build -f delivery-worker/Dockerfile \

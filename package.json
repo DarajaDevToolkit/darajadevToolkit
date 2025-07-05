@@ -24,8 +24,7 @@
     "ci:build": "npm run build",
     "ci:test": "npm run test",
     "ci:lint": "npm run lint",
-    "clean": "rm -rf */node_modules */dist */.next",
-    "preinstall": "npx npm-force-resolutions"
+    "clean": "rm -rf */node_modules */dist */.next"
   },
   "devDependencies": {
     "@eslint/plugin-kit": "^0.3.3",
