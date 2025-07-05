@@ -333,6 +333,10 @@ jobs:
         run: |
           echo "ref=ghcr.io/${{ steps.repo_owner.outputs.owner }}/darajadev-${{ matrix.service }}:latest" >> $GITHUB_OUTPUT
 
+      - name: Install Trivy CLI
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Run Trivy vulnerability scanner for ${{ matrix.service }}
         if: |
           (matrix.service == 'dashboard' && needs.detect-changes.outputs.dashboard_changed == 'true') ||
