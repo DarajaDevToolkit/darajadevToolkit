@@ -39,12 +39,13 @@
   },
   "resolutions": {
     "@babel/runtime": "7.27.6",
-    "esbuild": "0.18.20"
+     "esbuild": "0.21.4"
+
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "esbuild": "0.18.20"
+  "esbuild": "0.21.4"
   }
 }
