@@ -1,3 +1,2 @@
 # Testing CI
-## Pipeline trigger 5
-
+## Pipeline trigger 6
