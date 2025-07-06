@@ -267,6 +267,8 @@ jobs:
           - webhook-service
           - cli
           - delivery-worker
+      fail-fast: false
+    continue-on-error: true
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/CI/CD-Pipeline'
     steps:
       - uses: actions/checkout@v4
@@ -342,7 +344,16 @@ jobs:
           mkdir -p contrib
           curl -sSL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl -o contrib/html.tpl
 
+      - name: Authenticate to GitHub Container Registry (GHCR)
+        env:
+          CR_PAT: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          echo "$CR_PAT" | docker login ghcr.io -u ${{ steps.repo_owner.outputs.owner }} --password-stdin
+
       - name: Run Trivy vulnerability scanner for ${{ matrix.service }}
+        env:
+          TRIVY_USERNAME: ${{ steps.repo_owner.outputs.owner }}
+          TRIVY_PASSWORD: ${{ secrets.GHCR_TOKEN }}
         run: |
           IMAGE="ghcr.io/${{ steps.repo_owner.outputs.owner }}/darajadev-${{ matrix.service }}:latest"
           REPORT_HTML="trivy-${{ matrix.service }}.html"
