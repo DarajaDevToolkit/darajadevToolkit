@@ -8,6 +8,11 @@
     "build": "bun run tsc",
     "dev": "bun run tsc --watch"
   },
+
+  "dependencies": {
+    "ip-cidr": "^4.0.2"
+  },
+
   "devDependencies": {
     "typescript": "^5"
   }
