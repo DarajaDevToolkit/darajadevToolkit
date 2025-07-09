@@ -269,7 +269,7 @@ jobs:
           - delivery-worker
       fail-fast: false
     continue-on-error: true
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/CI/CD-Pipeline'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/CI/CD-Pipeline' || github.ref == 'refs/heads/ci-pipeline-debugging'
     steps:
       - uses: actions/checkout@v4
 
