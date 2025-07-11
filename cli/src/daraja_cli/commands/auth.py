@@ -8,7 +8,14 @@ from rich.console import Console
 from rich.prompt import Prompt, Confirm
 from rich.panel import Panel
 
-from ..utils.config import save_config, ConfigError
+from ..utils.config import (
+    save_profile,
+    list_profiles,
+    switch_profile,
+    get_current_profile_name,
+    clear_config,
+)
+from ..utils.config import ConfigError
 from ..utils.api import DarajaAPI, APIError
 from typing import Optional # this is so because we can use None as a default value for email and api_key, otherwise you'll run into issues with CI
 
@@ -20,10 +27,14 @@ def auth() -> None:
     pass
 
 @auth.command()
+@click.option('--profile', '-p', default=None, help='Profile name to use')
 @click.option('--email', help='Your email address')
 @click.option('--api-key', help='Your API key (if you have one)')
-
-def login(email: Optional[str] = None, api_key: Optional[str] = None) -> None:
+def login(
+    profile: Optional[str],
+    email: Optional[str] = None,
+    api_key: Optional[str] = None,
+) -> None:
     """Login to your Daraja account."""
     console.print("[bold blue]🔐 Login to Daraja[/bold blue]")
     
@@ -37,18 +48,18 @@ def login(email: Optional[str] = None, api_key: Optional[str] = None) -> None:
     # Validate credentials
     try:
         console.print("\n[dim]Validating credentials...[/dim]")
-        
+
         # Create temporary API client to test credentials
         temp_config = {
             'email': email,
             'api_key': api_key,
             'api_url': 'https://api.daraja-toolkit.com'  # TODO: Make configurable
         }
-        
+
         api = DarajaAPI(temp_config)
         user_info = api.get_user_info()
-        
-        # Save configuration
+
+        # Save configuration under profile
         config = {
             'email': email,
             'api_key': api_key,
@@ -59,9 +70,9 @@ def login(email: Optional[str] = None, api_key: Optional[str] = None) -> None:
             'current_environment': 'dev',
             'endpoints': {}
         }
-        
-        save_config(config)
-        
+        prof = profile or 'default'
+        save_profile(prof, config)
+
         console.print(Panel.fit(
             f"[bold green]✅ Successfully logged in![/bold green]\n\n"
             f"[bold]Name:[/bold] {user_info['name']}\n"
@@ -72,7 +83,6 @@ def login(email: Optional[str] = None, api_key: Optional[str] = None) -> None:
             f"[dim]Use this URL in your M-Pesa developer portal.[/dim]",
             title="Login Successful"
         ))
-        
     except APIError as e:
         console.print(f"[bold red]❌ Login failed:[/bold red] {e}")
         raise click.Abort()
@@ -87,7 +97,8 @@ def logout() -> None:
         return
     
     try:
-        # TODO: Clear saved configuration
+        # Clear saved configuration
+        clear_config()
         console.print("[green]✅ Successfully logged out![/green]")
     except Exception as e:
         console.print(f"[red]❌ Error during logout: {e}[/red]")
@@ -111,3 +122,27 @@ def whoami(ctx: click.Context) -> None:
         f"[cyan]{config.get('permanent_url', 'Not available')}[/cyan]",
         title="Current User"
     ))
+    
+@auth.command('profiles')
+def profiles_cmd() -> None:
+    """List all saved profiles."""
+    try:
+        profiles = list_profiles()
+        current = get_current_profile_name()
+        for p in profiles:
+            prefix = '✔️' if p == current else '  '
+            console.print(f"{prefix} {p}")
+    except ConfigError as e:
+        console.print(f"[red]❌ {e}[/red]")
+        raise click.Abort()
+
+@auth.command('use')
+@click.argument('profile')
+def use_cmd(profile: str) -> None:
+    """Switch active profile."""
+    try:
+        switch_profile(profile)
+        console.print(f"[green]✅ Switched to profile '{profile}'[/green]")
+    except ConfigError as e:
+        console.print(f"[red]❌ {e}[/red]")
+        raise click.Abort()

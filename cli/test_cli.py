@@ -6,6 +6,7 @@ I think we can do all integration tests here, But feel free to split them if you
 
 import sys
 import os
+from click.testing import CliRunner
 
 # Add the src directory to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -52,6 +53,26 @@ def test_cli_config():
         print(f"❌ Config test failed: {e}")
         assert False, f"Config test failed: {e}"
 
+# New tests for auth commands and profiles
+def test_auth_commands_registered():
+    """Test that auth group has expected subcommands"""
+    runner = CliRunner()
+    from daraja_cli.main import cli
+    result = runner.invoke(cli, ['auth', '--help'])
+    assert result.exit_code == 0
+    for cmd in ['login', 'logout', 'whoami', 'profiles', 'use']:
+        assert cmd in result.output
+    print("✅ Auth subcommands are registered")
+
+def test_profiles_command_error_without_config():
+    """Test that listing profiles without config errors out"""
+    runner = CliRunner()
+    from daraja_cli.main import cli
+    result = runner.invoke(cli, ['auth', 'profiles'])
+    assert result.exit_code != 0
+    assert 'not found' in result.output.lower() or 'error' in result.output.lower()
+    print("✅ Profiles command errors appropriately without config")
+
 def run_all_tests():
     """Run all tests and return success status"""
     print("🧪 Running CLI tests...")
@@ -59,7 +80,9 @@ def run_all_tests():
     tests = [
         test_cli_import,
         test_cli_basic_functionality,
-        test_cli_config
+        test_cli_config,
+        test_auth_commands_registered,
+        test_profiles_command_error_without_config
     ]
     
     passed = 0
