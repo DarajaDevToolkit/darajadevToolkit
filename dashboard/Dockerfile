@@ -1,49 +1,43 @@
-# The build context must be the parent directory, e.g., 'darajadevToolkit'
-# Run build with: docker build -f dashboard/Dockerfile -t dashboard .
-FROM node:alpine3.22 AS builder
+# ------------ Build Stage ------------
+FROM node:20-bookworm AS builder
 
-# Set the working directory to the root of the monorepo
 WORKDIR /app
 
-# Copy all package manifests and the lock file
-# This allows us to leverage Docker's layer caching
-COPY package.json package-lock.json* ./
+# Copy monorepo-level package metadata
+COPY package*.json ./
 COPY dashboard/package.json ./dashboard/
 COPY shared/package.json ./shared/
 
-# Copy the source code for the shared package
+# Copy shared package source early for better caching
 COPY shared ./shared
 
-# Install all dependencies for the entire monorepo
-# npm will handle the workspace linking automatically
-RUN npm install
+# Install only production and workspace deps
+RUN npm ci
 
-# Copy the rest of the dashboard source code
+# Copy dashboard source and build it
 COPY dashboard ./dashboard
+WORKDIR /app/dashboard
 
-# Run the build command from within the dashboard's context
-RUN npm run build -w @daraja-toolkit/dashboard
+# Build the Next.js app
+RUN npm run build
 
-# --- Production image ---
-FROM node:alpine3.22 AS runner
+# Optional: prune devDependencies for smaller runtime
+RUN npm prune --omit=dev
+
+# ------------ Runtime Stage (Distroless) ------------
+FROM gcr.io/distroless/nodejs20-debian12
+
 WORKDIR /app
 
-# Copy the pruned production node_modules from the builder
+# Copy the built .next folder and public assets
+COPY --from=builder /app/dashboard/.next ./.next
+COPY --from=builder /app/dashboard/public ./public
+COPY --from=builder /app/dashboard/package.json ./package.json
+
+# Copy pruned production node_modules
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dashboard/node_modules ./dashboard/node_modules
-
-# Copy the dashboard's package.json
-COPY --from=builder /app/dashboard/package.json ./dashboard/package.json
-
-# Copy the built application
-COPY --from=builder /app/dashboard/.next ./dashboard/.next
-COPY --from=builder /app/dashboard/public ./dashboard/public
-COPY --from=builder /app/dashboard/next.config.js ./dashboard/
-
-# Set the working directory to the dashboard
-WORKDIR /app/dashboard
 
 EXPOSE 3000
 
-# Start the Next.js application
-CMD ["npm", "start"]
+# Use the standalone server.js for Next.js
+CMD ["node", ".next/standalone/server.js"]

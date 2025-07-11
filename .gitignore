@@ -6,7 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -113,8 +112,7 @@ pids/
 
 # Bun
 .bun
-bun.lockb
-bun.lock
+
 
 # Temporary files
 *.tmp
@@ -148,6 +146,12 @@ create-github-issues.sh
 create-issues-simple.sh
 create-labels-milestones.sh
 apinotes.md
+importantnotes.md
+webhook-service/src/testfeatures.http
+FLOW.md
+EXECUTIVE-SUMMARY.md
+TECHNICAL-FLOW.md
+webhook-service/src/testfeatures.http
 
 # Package-specific ignores (keep these for explicit clarity)
 dashboard/.next/

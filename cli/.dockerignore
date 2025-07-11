@@ -1,0 +1,24 @@
+# Ignore Python cache and venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+
+# Ignore test output
+*.pytest_cache/
+
+# Ignore local config and editor files
+*.env
+*.DS_Store
+*.vscode/
+
+# Ignore build artifacts
+dist/
+build/
+.eggs/
+*.egg-info/
+
+# Ignore git
+.git
+.gitignore

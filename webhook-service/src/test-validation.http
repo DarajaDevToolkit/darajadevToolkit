@@ -1,0 +1,75 @@
+### Test Email Validation Fix
+
+# First, let's test that invalid email now gets rejected
+POST http://localhost:3001/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "invalid-email",
+  "phoneNumber": "+254712345679",
+  "password": "SecurePass123!"
+}
+
+###
+
+# Test with a valid email to ensure it still works
+POST http://localhost:3001/register
+Content-Type: application/json
+
+{
+  "name": "Valid User",
+  "email": "validuser@example.com", 
+  "phoneNumber": "+254712345679",
+  "password": "SecurePass123!"
+}
+
+###
+
+# Test login validation with invalid email
+POST http://localhost:3001/login
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "password123"
+}
+
+###
+
+# Test login validation with valid email but short password
+POST http://localhost:3001/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "short"
+}
+
+###
+
+# Test registration with invalid phone number
+POST http://localhost:3001/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "phoneNumber": "123-456-7890",
+  "password": "SecurePass123!"
+}
+
+###
+
+# Test registration with weak password
+POST http://localhost:3001/register
+Content-Type: application/json
+
+{
+  "name": "Test User", 
+  "email": "test@example.com",
+  "phoneNumber": "+254712345679",
+  "password": "weakpass"
+}
+
+###

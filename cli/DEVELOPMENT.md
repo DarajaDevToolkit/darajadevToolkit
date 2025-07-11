@@ -57,11 +57,11 @@ daraja test --help
 
 ### Key Technologies Used
 
-- **Click**: Modern CLI framework (better than argparse)
-- **Rich**: Beautiful terminal output with colors, tables, progress bars
+- **Click**: Modern CLI framework (better than argparse).
+- **Rich**: Beautiful terminal output with colors, tables, progress bars.
 - **Requests**: HTTP client for API calls
-- **Pydantic**: Data validation and parsing
-- **pytest**: Testing framework
+- **Pydantic**: Data validation and parsing.
+- **pytest**: Testing framework.
 
 ### Command Structure
 
@@ -259,7 +259,7 @@ pyinstaller --onefile src/daraja_cli/main.py
 - **CLI Lead**: Architecture decisions, API integration
 - **Command Developers**: Individual command implementation
 - **UX Developer**: Rich formatting, user experience
-- **Testing Developer**: Test coverage, validation
+- **Testing Developer**: Test coverage, validation.
 
 ### Integration Points
 
