@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 from .commands import auth, config, test, monitor, env
-from .utils.config import load_config, ConfigError
+from .utils.config import load_profile, load_config, ConfigError
 from .utils.api import DarajaAPI
 
 console = Console()
@@ -29,7 +29,7 @@ def cli(ctx: click.Context) -> None:
     
     # Try to load config for commands that need it
     try:
-        config_data = load_config()
+        config_data = load_profile()
         ctx.obj['config'] = config_data
         ctx.obj['api'] = DarajaAPI(config_data)
     except ConfigError:
