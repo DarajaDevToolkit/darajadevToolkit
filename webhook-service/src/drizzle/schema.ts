@@ -27,6 +27,9 @@ export const users = pgTable('users', {
   apiKey: varchar('api_key', { length: 64 }).unique(),
   role: roleEnum('role').default('user'), // Role-based access control
   isActive: boolean('is_active').default(true),
+  //added token and expires At
+  token: text('token').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
