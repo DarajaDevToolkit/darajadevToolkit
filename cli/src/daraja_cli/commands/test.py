@@ -212,3 +212,61 @@ def validate(ctx: click.Context) -> None:
                 result_text += f"  • {warning}\n"
         
         console.print(Panel.fit(result_text.strip(), title="Validation Results"))
+
+@test.command()
+@click.argument('webhook_id')
+@click.option('--environment', '-e', help='Environment to replay to (overrides original)')
+@click.option('--show-details', '-d', is_flag=True, help='Show webhook details before replaying')
+@click.pass_context
+def replay(ctx: click.Context, webhook_id: str, environment: str, show_details: bool) -> None:
+    """Replay a specific webhook by ID."""
+    config_data = ctx.obj.get('config')
+    api = ctx.obj.get('api')
+    
+    if not config_data or not api:
+        console.print("[red]❌ Not configured. Run 'daraja login' first.[/red]")
+        return
+    
+    try:
+        # Show webhook details if requested
+        if show_details:
+            with console.status("[bold blue]Fetching webhook details..."):
+                webhook_details = api.get_webhook_by_id(webhook_id)
+            
+            console.print(Panel.fit(
+                f"[bold]Webhook Details[/bold]\n\n"
+                f"[bold]ID:[/bold] {webhook_details.get('id', 'N/A')}\n"
+                f"[bold]Original Environment:[/bold] {webhook_details.get('environment', 'N/A')}\n"
+                f"[bold]Original Status:[/bold] {webhook_details.get('status', 'N/A')}\n"
+                f"[bold]Created:[/bold] {webhook_details.get('created_at', 'N/A')}\n"
+                f"[bold]Payload Size:[/bold] {len(str(webhook_details.get('payload', {})))} chars",
+                title="Webhook Info"
+            ))
+            
+            if not click.confirm(f"Replay this webhook{' to ' + environment if environment else ''}?"):
+                console.print("[yellow]❌ Replay cancelled[/yellow]")
+                return
+        
+        console.print(f"[bold blue]🔄 Replaying webhook[/bold blue]")
+        console.print(f"[dim]Webhook ID:[/dim] {webhook_id}")
+        if environment:
+            console.print(f"[dim]Target Environment:[/dim] {environment}")
+        
+        with console.status("[bold blue]Replaying webhook..."):
+            result = api.replay_webhook(webhook_id, environment)
+        
+        # Display results
+        console.print(Panel.fit(
+            f"[bold green]✅ Webhook replayed successfully![/bold green]\n\n"
+            f"[bold]New Webhook ID:[/bold] {result.get('new_webhook_id', 'N/A')}\n"
+            f"[bold]Target Environment:[/bold] {result.get('environment', 'N/A')}\n"
+            f"[bold]Status:[/bold] {result.get('status', 'Queued')}\n"
+            f"[bold]Timestamp:[/bold] {result.get('timestamp', 'N/A')}\n\n"
+            f"[dim]Use 'daraja monitor logs --webhook-id {result.get('new_webhook_id', '')}' to track delivery.[/dim]",
+            title="Replay Results"
+        ))
+        
+    except APIError as e:
+        console.print(f"[red]❌ Replay failed: {e}[/red]")
+    except Exception as e:
+        console.print(f"[red]❌ Unexpected error: {e}[/red]")

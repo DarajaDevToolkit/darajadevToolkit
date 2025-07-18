@@ -85,11 +85,21 @@ class DarajaAPI:
         """Get webhook status and statistics."""
         return self._make_request('GET', f'/user/{self.user_id}/webhook/status')
     
-    def get_webhook_logs(self, limit: int = 50, environment: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Get webhook delivery logs."""
+    def get_webhook_logs(self, limit: int = 50, environment: Optional[str] = None, 
+                         status: Optional[str] = None, webhook_id: Optional[str] = None,
+                         start_date: Optional[str] = None, end_date: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get webhook delivery logs with enhanced filtering."""
         params = {'limit': limit}
         if environment:
             params['environment'] = environment
+        if status:
+            params['status'] = status
+        if webhook_id:
+            params['webhook_id'] = webhook_id
+        if start_date:
+            params['start_date'] = start_date
+        if end_date:
+            params['end_date'] = end_date
         
         endpoint = f'/user/{self.user_id}/webhook/logs'
         if params:
@@ -124,3 +134,14 @@ class DarajaAPI:
         """Get webhook metrics for the specified number of days."""
         endpoint = f'/user/{self.user_id}/metrics?days={days}'
         return self._make_request('GET', endpoint)
+    
+    def replay_webhook(self, webhook_id: str, environment: Optional[str] = None) -> Dict[str, Any]:
+        """Replay a specific webhook by ID."""
+        data = {'webhook_id': webhook_id}
+        if environment:
+            data['environment'] = environment
+        return self._make_request('POST', f'/user/{self.user_id}/webhook/replay', data)
+    
+    def get_webhook_by_id(self, webhook_id: str) -> Dict[str, Any]:
+        """Get details of a specific webhook by ID."""
+        return self._make_request('GET', f'/user/{self.user_id}/webhook/{webhook_id}')

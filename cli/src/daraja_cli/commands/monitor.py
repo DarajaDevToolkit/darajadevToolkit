@@ -3,6 +3,7 @@ Monitoring and logging commands for Daraja CLI
 """
 
 import click
+import json
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -76,9 +77,14 @@ def status(ctx: click.Context) -> None:
 @click.option('--tail', '-f', is_flag=True, help='Follow logs in real-time')
 @click.option('--limit', '-n', default=20, help='Number of log entries to show')
 @click.option('--environment', '-e', help='Filter by environment')
+@click.option('--status', '-s', help='Filter by status (delivered, failed, pending)')
+@click.option('--webhook-id', '-w', help='Filter by specific webhook ID')
+@click.option('--start-date', help='Filter from start date (YYYY-MM-DD)')
+@click.option('--end-date', help='Filter until end date (YYYY-MM-DD)')
 @click.pass_context
-def logs(ctx: click.Context, tail: bool, limit: int, environment: str) -> None:
-    """Show webhook delivery logs."""
+def logs(ctx: click.Context, tail: bool, limit: int, environment: str, 
+         status: str, webhook_id: str, start_date: str, end_date: str) -> None:
+    """Show webhook delivery logs with advanced filtering."""
     config_data = ctx.obj.get('config')
     api = ctx.obj.get('api')
     
@@ -86,19 +92,54 @@ def logs(ctx: click.Context, tail: bool, limit: int, environment: str) -> None:
         console.print("[red]❌ Not configured. Run 'daraja login' first.[/red]")
         return
     
+    # Validate status if provided
+    if status and status not in ['delivered', 'failed', 'pending']:
+        console.print("[red]❌ Invalid status. Must be one of: delivered, failed, pending[/red]")
+        return
+    
+    # Validate date formats if provided
+    if start_date:
+        try:
+            datetime.strptime(start_date, '%Y-%m-%d')
+        except ValueError:
+            console.print("[red]❌ Invalid start date format. Use YYYY-MM-DD[/red]")
+            return
+    
+    if end_date:
+        try:
+            datetime.strptime(end_date, '%Y-%m-%d')
+        except ValueError:
+            console.print("[red]❌ Invalid end date format. Use YYYY-MM-DD[/red]")
+            return
+    
     if tail:
         _follow_logs(api, environment)
     else:
-        _show_logs(api, limit, environment)
+        _show_logs(api, limit, environment, status, webhook_id, start_date, end_date)
 
-def _show_logs(api: DarajaAPI, limit: int, environment: str) -> None:
-    """Show recent logs."""
+def _show_logs(api: DarajaAPI, limit: int, environment: str, status: str = None, 
+               webhook_id: str = None, start_date: str = None, end_date: str = None) -> None:
+    """Show recent logs with advanced filtering."""
     try:
-        with console.status("[bold blue]Fetching logs..."):
-            logs_data = api.get_webhook_logs(limit, environment)
+        filter_desc = []
+        if environment:
+            filter_desc.append(f"environment: {environment}")
+        if status:
+            filter_desc.append(f"status: {status}")
+        if webhook_id:
+            filter_desc.append(f"webhook ID: {webhook_id}")
+        if start_date:
+            filter_desc.append(f"from: {start_date}")
+        if end_date:
+            filter_desc.append(f"to: {end_date}")
+        
+        filter_text = f" ({', '.join(filter_desc)})" if filter_desc else ""
+        
+        with console.status(f"[bold blue]Fetching logs{filter_text}..."):
+            logs_data = api.get_webhook_logs(limit, environment, status, webhook_id, start_date, end_date)
         
         if not logs_data:
-            console.print("[yellow]📝 No logs found[/yellow]")
+            console.print(f"[yellow]📝 No logs found{filter_text}[/yellow]")
             return
         
         # Display logs table
@@ -130,7 +171,9 @@ def _show_logs(api: DarajaAPI, limit: int, environment: str) -> None:
             
             response_code = log.get('response_code', '-')
             duration = f"{log.get('duration_ms', 0)}ms"
-            webhook_id = log.get('webhook_id', 'N/A')[:12] + '...'
+            webhook_id_display = log.get('webhook_id', 'N/A')
+            if len(webhook_id_display) > 12:
+                webhook_id_display = webhook_id_display[:12] + '...'
             
             table.add_row(
                 time_str,
@@ -138,11 +181,22 @@ def _show_logs(api: DarajaAPI, limit: int, environment: str) -> None:
                 f"[{status_color}]{status_icon}[/{status_color}]",
                 str(response_code),
                 duration,
-                webhook_id
+                webhook_id_display
             )
         
         console.print(table)
-        console.print(f"\n[dim]Showing {len(logs_data)} most recent entries[/dim]")
+        
+        # Show filter summary
+        summary_parts = [f"Showing {len(logs_data)} entries"]
+        if filter_desc:
+            summary_parts.append(f"filtered by {', '.join(filter_desc)}")
+        console.print(f"\n[dim]{' '.join(summary_parts)}[/dim]")
+        
+        # Show helpful commands
+        if logs_data:
+            console.print(f"\n[dim]💡 Tips:[/dim]")
+            console.print(f"[dim]  • Use --webhook-id to see specific webhook details[/dim]")
+            console.print(f"[dim]  • Use 'daraja test replay' to replay a webhook[/dim]")
         
     except APIError as e:
         console.print(f"[red]❌ Failed to fetch logs: {e}[/red]")
@@ -284,5 +338,72 @@ def metrics(ctx: click.Context, days: int) -> None:
         
     except APIError as e:
         console.print(f"[red]❌ Failed to fetch metrics: {e}[/red]")
+    except Exception as e:
+        console.print(f"[red]❌ Unexpected error: {e}[/red]")
+
+@monitor.command()
+@click.argument('webhook_id')
+@click.pass_context 
+def webhook(ctx: click.Context, webhook_id: str) -> None:
+    """Show detailed information about a specific webhook."""
+    config_data = ctx.obj.get('config')
+    api = ctx.obj.get('api')
+    
+    if not config_data or not api:
+        console.print("[red]❌ Not configured. Run 'daraja login' first.[/red]")
+        return
+    
+    try:
+        with console.status(f"[bold blue]Fetching webhook details..."):
+            webhook_data = api.get_webhook_by_id(webhook_id)
+        
+        # Basic information
+        console.print(Panel.fit(
+            f"[bold]Webhook Details[/bold]\n\n"
+            f"[bold]ID:[/bold] {webhook_data.get('id', 'N/A')}\n"
+            f"[bold]Environment:[/bold] {webhook_data.get('environment', 'N/A')}\n"
+            f"[bold]Status:[/bold] {webhook_data.get('status', 'N/A')}\n"
+            f"[bold]Created:[/bold] {webhook_data.get('created_at', 'N/A')}\n"
+            f"[bold]Last Updated:[/bold] {webhook_data.get('updated_at', 'N/A')}\n"
+            f"[bold]Response Code:[/bold] {webhook_data.get('response_code', 'N/A')}\n"
+            f"[bold]Response Time:[/bold] {webhook_data.get('response_time_ms', 'N/A')}ms\n"
+            f"[bold]Retry Count:[/bold] {webhook_data.get('retry_count', 0)}\n"
+            f"[bold]Endpoint URL:[/bold] {webhook_data.get('endpoint_url', 'N/A')}",
+            title="Webhook Information"
+        ))
+        
+        # Payload information
+        payload = webhook_data.get('payload', {})
+        if payload:
+            payload_str = json.dumps(payload, indent=2)
+            if len(payload_str) > 500:
+                payload_str = payload_str[:500] + "\n... (truncated)"
+            
+            console.print("\n[bold]Payload:[/bold]")
+            console.print(Panel(payload_str, title="Request Payload", border_style="dim"))
+        
+        # Response information
+        response = webhook_data.get('response', {})
+        if response:
+            response_str = json.dumps(response, indent=2)
+            if len(response_str) > 300:
+                response_str = response_str[:300] + "\n... (truncated)"
+                
+            console.print("\n[bold]Response:[/bold]")
+            console.print(Panel(response_str, title="Response Data", border_style="dim"))
+        
+        # Error information
+        error = webhook_data.get('error')
+        if error:
+            console.print(f"\n[bold red]Error:[/bold red]")
+            console.print(Panel(error, title="Error Details", border_style="red"))
+        
+        # Show available actions
+        console.print(f"\n[dim]💡 Available actions:[/dim]")
+        console.print(f"[dim]  • daraja test replay {webhook_id} - Replay this webhook[/dim]")
+        console.print(f"[dim]  • daraja monitor logs --webhook-id {webhook_id} - Show related logs[/dim]")
+        
+    except APIError as e:
+        console.print(f"[red]❌ Failed to fetch webhook details: {e}[/red]")
     except Exception as e:
         console.print(f"[red]❌ Unexpected error: {e}[/red]")
