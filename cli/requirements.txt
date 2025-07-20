@@ -35,4 +35,3 @@ typing_extensions==4.14.0
 urllib3==2.5.0
 keyring>=23.0.1
 setuptools==80.9.0
-

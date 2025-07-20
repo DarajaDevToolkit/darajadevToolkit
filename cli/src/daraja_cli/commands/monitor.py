@@ -72,6 +72,91 @@ def status(ctx: click.Context) -> None:
     except Exception as e:
         console.print(f"[red]❌ Unexpected error: {e}[/red]")
 
+@monitor.command('test')
+@click.option('--environment', '-e', required=True, help='Environment to send test webhook')
+@click.option('--payload-file', '-p', type=click.Path(exists=True), help='JSON file with payload for test')
+@click.pass_context
+def test_webhook(ctx: click.Context, environment: str, payload_file: str) -> None:
+    """Send a test webhook to the specified environment."""
+    config_data = ctx.obj.get('config')
+    api = ctx.obj.get('api')
+    if not config_data or not api:
+        console.print("[red]❌ Not configured. Run 'daraja login' first.[/red]")
+        return
+    payload = None
+    if payload_file:
+        try:
+            import json
+            with open(payload_file, 'r') as f:
+                payload = json.load(f)
+        except Exception as e:
+            console.print(f"[red]❌ Failed to load payload: {e}[/red]")
+            return
+    try:
+        with console.status(f"[bold blue]Sending test webhook to {environment}..."):
+            result = api.send_test_webhook(environment, payload)
+        console.print(Panel.fit(f"✅ Test webhook sent. Response:\n{result}" , title="Test Webhook"))
+    except APIError as e:
+        console.print(f"[red]❌ Failed to send test webhook: {e}[/red]")
+    except Exception as e:
+        console.print(f"[red]❌ Unexpected error: {e}[/red]")
+
+@monitor.command('replay')
+@click.option('--webhook-id', '-w', required=True, help='ID of the webhook to replay')
+@click.pass_context
+def replay(ctx: click.Context, webhook_id: str) -> None:
+    """Replay a specific webhook delivery."""
+    config_data = ctx.obj.get('config')
+    api = ctx.obj.get('api')
+    if not config_data or not api:
+        console.print("[red]❌ Not configured. Run 'daraja login' first.[/red]")
+        return
+    try:
+        with console.status(f"[bold blue]Replaying webhook {webhook_id}..."):
+            result = api.replay_webhook(webhook_id)
+        console.print(Panel.fit(f"✅ Replay result:\n{result}" , title="Replay Webhook"))
+    except APIError as e:
+        console.print(f"[red]❌ Failed to replay webhook: {e}[/red]")
+    except Exception as e:
+        console.print(f"[red]❌ Unexpected error: {e}[/red]")
+
+@monitor.command('history')
+@click.option('--limit', '-n', default=50, help='Number of history entries to show')
+@click.option('--environment', '-e', help='Filter by environment')
+@click.pass_context
+def history(ctx: click.Context, limit: int, environment: str) -> None:
+    """Browse webhook history."""
+    config_data = ctx.obj.get('config')
+    api = ctx.obj.get('api')
+    if not config_data or not api:
+        console.print("[red]❌ Not configured. Run 'daraja login' first.[/red]")
+        return
+    try:
+        with console.status(f"[bold blue]Fetching webhook history..."):
+            logs_data = api.get_webhook_logs(limit, environment)
+        if not logs_data:
+            console.print("[yellow]📝 No history entries found[/yellow]")
+            return
+        # Display reversed chronological history
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("Timestamp", style="dim", width=20)
+        table.add_column("Environment", width=10)
+        table.add_column("Status", justify="center", width=8)
+        table.add_column("Webhook ID", style="dim")
+        for log in reversed(logs_data):
+            ts = datetime.fromisoformat(log.get('timestamp', ''))
+            table.add_row(
+                ts.strftime('%Y-%m-%d %H:%M:%S'),
+                log.get('environment', 'N/A'),
+                log.get('status', 'unknown'),
+                log.get('webhook_id', 'N/A')
+            )
+        console.print(table)
+        console.print(f"\n[dim]Showing {len(logs_data)} history entries[/dim]")
+    except APIError as e:
+        console.print(f"[red]❌ Failed to fetch history: {e}[/red]")
+    except Exception as e:
+        console.print(f"[red]❌ Unexpected error: {e}[/red]")
 @monitor.command()
 @click.option('--tail', '-f', is_flag=True, help='Follow logs in real-time')
 @click.option('--limit', '-n', default=20, help='Number of log entries to show')
