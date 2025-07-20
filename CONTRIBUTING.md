@@ -21,7 +21,7 @@ npm install
 # 2. Start local services (Redis & PostgreSQL)
 docker compose up -d
 
-# 3. Copy environment variables
+# 3. Copy environment variables.
 cp .env.example .env
 
 # 4. Start development servers
@@ -58,8 +58,8 @@ chmod +x dev.sh
 
 ### Key Technologies
 
-- **Bun** - Fast webhook service runtime
-- **Next.js** - Modern React framework
+- **Bun** - Fast webhook service runtime.
+- **Next.js** - Modern React framework.
 - **TypeScript** - Type safety across all services
 - **Redis** - Queue management
 - **PostgreSQL** - Data persistence
