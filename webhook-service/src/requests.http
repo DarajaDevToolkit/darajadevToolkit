@@ -3,9 +3,9 @@ POST http://localhost:3001/register
 Content-Type: application/json
 
 {
-  "name": "Jinef John",
-  "email": "john@gmail.com",
-  "phoneNumber": "+254742252911",
+  "name": "Gideon Ngetich",
+  "email": "opopsingh26@gmail.com",
+  "phoneNumber": "+254742252919",
   "password": "SuperSecret123!"
 }
 
@@ -14,14 +14,14 @@ POST http://localhost:3001/login
 Content-Type: application/json
 
 {
-  "email": "kamande@gmail.com",
-  "password": "SuperSecret123!"   
+  "email": "opopsingh26@gmail.com",
+  "password": "NewSuperSecret123!"   
 }
 
 ### Get All Users
 GET http://localhost:3001/users
 
-### Get User by ID
+### Get User by ID 
 GET http://localhost:3001/users/1791d7bf-e53e-423f-830e-47d1cde572ee
 
 ### Update User
@@ -35,3 +35,25 @@ Content-Type: application/json
 
 ### Delete User
 DELETE http://localhost:3001/users/REPLACE_WITH_USER_ID
+
+### Forgot Password
+POST http://localhost:3001/forgot-password
+Content-Type: application/json
+
+{
+  "email": "opopsingh26@gmail.com"
+}
+
+### Verify Reset Token
+GET http://localhost:3000/reset-password?token=639efd30da81492d0026b3718024c1c4dd51b6445c014721ed5ace7eb457b880bd24caad9a894c5de71fe0bced3e552912cea42e1df50cfcb21790fb81311573
+
+
+### Reset Password
+POST http://localhost:3001/reset-password
+Content-Type: application/json
+
+{
+  "email": "opopsingh26@gmail.com",
+  "password": "NewSuperSecret123!",
+  "token": "639efd30da81492d0026b3718024c1c4dd51b6445c014721ed5ace7eb457b880bd24caad9a894c5de71fe0bced3e552912cea42e1df50cfcb21790fb81311573"
+}

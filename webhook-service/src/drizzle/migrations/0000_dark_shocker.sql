@@ -69,6 +69,8 @@ CREATE TABLE "users" (
 	"api_key" varchar(64),
 	"role" "user_type" DEFAULT 'user',
 	"is_active" boolean DEFAULT true,
+	"token" text NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"last_login_at" timestamp,
