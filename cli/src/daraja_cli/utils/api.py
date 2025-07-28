@@ -124,3 +124,8 @@ class DarajaAPI:
         """Get webhook metrics for the specified number of days."""
         endpoint = f'/user/{self.user_id}/metrics?days={days}'
         return self._make_request('GET', endpoint)
+    
+    def replay_webhook(self, webhook_id: str) -> Dict[str, Any]:
+        """Replay a specific webhook delivery."""
+        data = {'webhook_id': webhook_id}
+        return self._make_request('POST', f'/user/{self.user_id}/webhook/replay', data)
