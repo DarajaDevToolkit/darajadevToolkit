@@ -60,7 +60,7 @@ def test_auth_commands_registered():
     from daraja_cli.main import cli
     result = runner.invoke(cli, ['auth', '--help'])
     assert result.exit_code == 0
-    for cmd in ['login', 'logout', 'whoami', 'profiles', 'use']:
+    for cmd in ['login', 'logout', 'whoami', 'profiles', 'use', 'delete', 'rename']:
         assert cmd in result.output
     print("✅ Auth subcommands are registered")
 
@@ -73,6 +73,28 @@ def test_profiles_command_error_without_config():
     assert 'not found' in result.output.lower() or 'error' in result.output.lower()
     print("✅ Profiles command errors appropriately without config")
 
+def test_auth_delete_command_registered():
+    """Test that auth delete command is registered"""
+    runner = CliRunner()
+    from daraja_cli.main import cli
+    result = runner.invoke(cli, ['auth', '--help'])
+    assert result.exit_code == 0
+    assert 'delete' in result.output
+    print("✅ Auth delete command is registered")
+
+def test_config_utils_functions():
+    """Test that config utility functions are importable"""
+    try:
+        from daraja_cli.utils.config import (
+            get_config_dir, load_all_config, save_all_config,
+            list_profiles, get_current_profile_name, switch_profile,
+            load_profile, save_profile, delete_profile, rename_profile
+        )
+        print("✅ All config utility functions are importable")
+    except ImportError as e:
+        print(f"❌ Config utilities import failed: {e}")
+        assert False, f"Config utilities import failed: {e}"
+
 def run_all_tests():
     """Run all tests and return success status"""
     print("🧪 Running CLI tests...")
@@ -82,7 +104,9 @@ def run_all_tests():
         test_cli_basic_functionality,
         test_cli_config,
         test_auth_commands_registered,
-        test_profiles_command_error_without_config
+        test_profiles_command_error_without_config,
+        test_auth_delete_command_registered,
+        test_config_utils_functions
     ]
     
     passed = 0
